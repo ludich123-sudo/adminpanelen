@@ -1,0 +1,3728 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matematik Admin PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- MathJax MUST be configured BEFORE loading the script (and not async) -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true
+        },
+        svg: { fontCache: 'global' },
+        startup: { typeset: false }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js?v=3"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%); min-height: 100vh; }
+        
+        /* Preview styles - EXAKT som i matematiktränaren */
+        .preview-container {
+            font-family: 'Merriweather', serif;
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            min-height: 200px;
+        }
+        
+        .problem-text-block {
+            font-family: 'Merriweather', serif;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #1f2937;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+        
+        .problem-math-block {
+            font-family: 'Inter', sans-serif;
+            margin: 1rem 0;
+            text-align: center;
+            font-size: 1.4rem;
+            display: block;
+        }
+        
+        .step-block {
+            background: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        
+        .step-number {
+            font-weight: bold;
+            color: #16a34a;
+            margin-right: 0.5rem;
+        }
+
+        .scaffold-block {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .scaffold-number {
+            font-weight: bold;
+            color: #d97706;
+            margin-right: 0.5rem;
+        }
+
+        /* Tabs */
+        .tab-btn { 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.5rem 0.5rem 0 0; 
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .tab-btn.active { background: white; color: #4f46e5; }
+        .tab-btn:not(.active) { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.2); }
+
+        /* Path selector */
+        .path-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .path-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+        .path-btn:not(.active) { background: white; color: #4f46e5; border-color: #e2e8f0; }
+        .path-btn:hover:not(.active) { border-color: #4f46e5; }
+
+        /* Task cards */
+        .task-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+        }
+        .task-card:hover { border-color: #818cf8; }
+        .task-card.current { border-color: #4f46e5; background: #f5f3ff; box-shadow: 0 4px 20px rgba(79, 70, 229, 0.2); }
+        .task-card.saved { border-color: #16a34a; background: #f0fdf4; }
+        .task-card.skipped { border-color: #f59e0b; background: #fffbeb; opacity: 0.7; }
+        
+        /* MathJax */
+        mjx-container[jax="CHTML"][display="true"] { display: block !important; text-align: center; margin: 0.5rem 0 !important; }
+        mjx-container { margin: 0 3px !important; }
+
+        /* Animations */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: slideIn 0.3s ease-out; }
+        
+        /* Code block for example */
+        .example-code {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.85rem;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .example-code .keyword { color: #f472b6; }
+        .example-code .math { color: #a5f3fc; }
+        .example-code .comment { color: #64748b; }
+
+        /* Filter chips */
+        .filter-chip {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-chip.active { background: #4f46e5; color: white; }
+        .filter-chip:not(.active) { background: #e2e8f0; color: #64748b; }
+
+        /* Diagram color buttons */
+        .diagram-color-btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .diagram-color-btn.active { border-color: #4f46e5; background: #eef2ff; }
+        .diagram-color-btn:hover:not(.active) { border-color: #94a3b8; }
+
+        .diagram-data-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 40px;
+            gap: 8px;
+            align-items: center;
+        }
+        .diagram-data-row input {
+            padding: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .diagram-data-row input:focus {
+            border-color: #818cf8;
+            outline: none;
+        }
+        .diagram-data-row .remove-row-btn {
+            background: transparent;
+            color: #dc2626;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .diagram-data-row .remove-row-btn:hover {
+            background: #fee2e2;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Bulk import specific */
+        .bulk-textarea {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .task-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all 0.2s;
+        }
+        .task-nav-btn:hover:not(:disabled) { transform: scale(1.1); }
+        .task-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Genomgång toolbar */
+        .toolbar-btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: white;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toolbar-btn:hover {
+            border-color: #818cf8;
+            background: #f5f3ff;
+        }
+        
+        /* Genomgång special blocks preview */
+        .genomgang-tip {
+            background: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .genomgang-warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .genomgang-example {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        /* Worksheet/Papper styles */
+        .worksheet-page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm 20mm;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-family: 'Merriweather', serif;
+            box-sizing: border-box;
+        }
+
+        .worksheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #1e1b4b;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .worksheet-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e1b4b;
+        }
+
+        .worksheet-name-date {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+        }
+
+        .worksheet-name-date label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .worksheet-name-date .line {
+            border-bottom: 1px solid #333;
+            width: 120px;
+            display: inline-block;
+        }
+
+        .worksheet-task {
+            margin-bottom: 24px;
+            page-break-inside: avoid;
+        }
+
+        .worksheet-task-number {
+            font-weight: bold;
+            color: #4f46e5;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .worksheet-task-content {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #1f2937;
+        }
+
+        .worksheet-task-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+        }
+
+        .worksheet-answer-line {
+            margin-top: 12px;
+            border-bottom: 1px solid #666;
+            height: 24px;
+        }
+
+        .worksheet-answer-box {
+            margin-top: 12px;
+            border: 1px solid #666;
+            height: 40px;
+            border-radius: 4px;
+        }
+
+        .worksheet-scaffolding {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 8px 12px;
+            margin-top: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .worksheet-scaffolding-title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #92400e;
+            margin-bottom: 4px;
+        }
+
+        .worksheet-scaffolding-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .worksheet-scaffolding-item {
+            font-size: 0.75rem;
+            color: #78350f;
+            line-height: 1.4;
+        }
+
+        .worksheet-answer-key {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #ccc;
+        }
+
+        .worksheet-answer-key-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #16a34a;
+        }
+
+        .worksheet-answer-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 20px;
+        }
+
+        .worksheet-answer-item {
+            display: inline-block;
+            font-size: 0.95rem;
+        }
+
+        .worksheet-answer-item strong {
+            color: #4f46e5;
+        }
+
+        .papper-task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .papper-task-item:hover {
+            border-color: #818cf8;
+            background: #f5f3ff;
+        }
+
+        .papper-task-item.selected {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+
+        .papper-task-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .papper-task-preview {
+            flex: 1;
+            font-size: 0.9rem;
+            color: #374151;
+            line-height: 1.5;
+        }
+
+        /* Print styles */
+        @media print {
+            @page {
+                margin: 15mm;
+                size: A4;
+            }
+            
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            body > *:not(#worksheetPrintArea) {
+                display: none !important;
+            }
+            
+            #worksheetPrintArea {
+                display: block !important;
+            }
+            
+            .worksheet-page {
+                width: 100% !important;
+                min-height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                page-break-after: always;
+            }
+            
+            .worksheet-page:last-child {
+                page-break-after: auto;
+            }
+
+            .worksheet-task {
+                page-break-inside: avoid;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">📐 Matematik Admin PRO</h1>
+            <p class="text-indigo-200">Bulk-import med ChatGPT-format</p>
+        </div>
+
+        <!-- Firebase Status & Path Selector -->
+        <div class="bg-white/10 backdrop-blur rounded-xl p-4 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div id="firebaseStatus" class="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></div>
+                    <span id="firebaseStatusText" class="text-white font-medium">Ansluter till Firebase...</span>
+                </div>
+            </div>
+            
+            <div class="bg-white/10 rounded-lg p-4">
+                <label class="block text-white text-sm font-bold mb-3">📂 Var ska uppgifterna sparas?</label>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button id="pathCampaigns" class="path-btn active" onclick="setCollection('campaigns')">
+                        🚀 Kapitelträning
+                    </button>
+                    <button id="pathMathTasks" class="path-btn" onclick="setCollection('math_tasks')">
+                        🎯 Typuppgifter NP
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-200 uppercase mb-1">Ämne</label>
+                        <select id="topicSelect" class="w-full p-2 rounded-lg bg-white text-gray-800 font-medium">
+                            <option value="Taluppfattning">Taluppfattning</option>
+                            <option value="Algebra">Algebra</option>
+                            <option value="Procent">Procent</option>
+                            <option value="Sannolikhet">Sannolikhet</option>
+                            <option value="FunktionerSamband">Funktioner & Samband</option>
+                            <option value="Statistik">Statistik</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-200 uppercase mb-1">Årskurs</label>
+                        <select id="levelSelect" class="w-full p-2 rounded-lg bg-white text-gray-800 font-medium" onchange="updatePath()">
+                            <option value="ma1" selected>Ma 1</option>
+                            <option value="grund">Matematik Grund</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-200 uppercase mb-1">Del</label>
+                        <select id="chapterSelect" class="w-full p-2 rounded-lg bg-white text-gray-800 font-medium">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div id="currentPath" class="mt-3 text-indigo-200 text-sm font-mono">
+                    Sökväg: .../campaigns/Taluppfattning/tasks/prio
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-1 mb-0 flex-wrap">
+            <button id="tabBulkBtn" class="tab-btn active">📦 Bulk Import</button>
+            <button id="tabGraphBtn" class="tab-btn">📈 Graf-uppgifter</button>
+            <button id="tabFormatBtn" class="tab-btn">📋 Format & Exempel</button>
+            <button id="tabListBtn" class="tab-btn">📚 Hantera</button>
+            <button id="tabGenomgangBtn" class="tab-btn">📖 Genomgång</button>
+            <button id="tabDiagramBtn" class="tab-btn">📊 Diagram</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-b-2xl rounded-tr-2xl shadow-2xl overflow-hidden">
+            
+            <!-- TAB 1: Bulk Import -->
+            <div id="viewBulk" class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <!-- Left: Input -->
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">📦 Klistra in flera uppgifter</h2>
+                        <p class="text-gray-600 mb-4">Klistra in uppgifter från ChatGPT. Separera varje uppgift med <code class="bg-gray-100 px-2 py-1 rounded">---</code></p>
+                        
+                        <textarea id="bulkInput" class="bulk-textarea w-full h-96 p-4 border-2 border-gray-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 transition" placeholder="UPPGIFT:
+Förenkla uttrycket: $(4x + 2y) - (2x - 3y)$
+
+SCAFFOLDING:
+1. Fokusera på en parentes i taget
+2. Tänk på att minus framför parentesen ändrar tecken
+
+LÖSNING:
+1. Ta bort första parentesen: $4x + 2y$
+2. Minus framför andra parentesen ger: $-2x + 3y$
+3. Samla x-termerna: $4x - 2x = 2x$
+4. Samla y-termerna: $2y + 3y = 5y$
+
+SVAR:
+$2x + 5y$
+
+---
+
+UPPGIFT:
+Beräkna $\frac{3}{4} + \frac{2}{3}$
+..."></textarea>
+
+                        <div class="flex gap-3 mt-4">
+                            <button onclick="parseBulkInput()" class="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg">
+                                ✨ Tolka uppgifter
+                            </button>
+                            <button onclick="clearBulkInput()" class="bg-gray-200 text-gray-600 py-3 px-6 rounded-xl font-medium hover:bg-gray-300 transition">
+                                🗑️ Rensa
+                            </button>
+                        </div>
+                        
+                        <div id="parseStatus" class="mt-3 text-center font-medium"></div>
+                    </div>
+
+                    <!-- Right: Preview & Navigation -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-bold text-gray-800">👁️ Förhandsvisning</h2>
+                            <div id="taskCounter" class="hidden bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full font-bold">
+                                Uppgift 1 av 0
+                            </div>
+                        </div>
+
+                        <!-- Task Navigation -->
+                        <div id="taskNavigation" class="hidden mb-4">
+                            <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                                <button onclick="prevTask()" id="prevBtn" class="task-nav-btn bg-gray-200 hover:bg-gray-300" disabled>
+                                    ←
+                                </button>
+                                
+                                <div class="flex gap-2 overflow-x-auto px-4" id="taskDots">
+                                    <!-- Dots generated dynamically -->
+                                </div>
+                                
+                                <button onclick="nextTask()" id="nextBtn" class="task-nav-btn bg-gray-200 hover:bg-gray-300">
+                                    →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Preview Container -->
+                        <div class="preview-container shadow-lg mb-4" id="bulkPreview">
+                            <p class="text-gray-400 text-center italic py-8">Klistra in uppgifter och klicka "Tolka uppgifter" för att förhandsgranska...</p>
+                        </div>
+
+                        <!-- Task Actions -->
+                        <div id="taskActions" class="hidden space-y-3">
+                            <div class="flex gap-3">
+                                <button onclick="saveCurrentTask()" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-green-700 transition shadow-lg">
+                                    💾 Spara denna uppgift
+                                </button>
+                                <button onclick="skipCurrentTask()" class="bg-amber-100 text-amber-700 py-3 px-6 rounded-xl font-bold hover:bg-amber-200 transition">
+                                    ⏭️ Hoppa över
+                                </button>
+                            </div>
+                            <button onclick="saveAllTasks()" class="w-full bg-purple-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-purple-700 transition shadow-lg">
+                                🚀 Spara alla osparade uppgifter
+                            </button>
+                            <div id="saveStatus" class="text-center font-medium"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task List Overview -->
+                <div id="taskListOverview" class="hidden mt-8 border-t pt-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">📋 Översikt av tolkade uppgifter</h3>
+                    <div id="parsedTasksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                        <!-- Task cards generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Graph Creator -->
+            <div id="viewGraph" class="hidden p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left: Graph Editor -->
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">📈 Rita graf i koordinatsystem</h2>
+                        
+                        <!-- Graph Type Selection -->
+                        <!-- Graph Elements List -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-bold text-gray-600 mb-2">Graf-element</label>
+                            <div id="graphElementsList" class="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                                <!-- Elements will be added here -->
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="addGraphElement('line')" class="flex-1 bg-blue-100 text-blue-700 py-2 px-3 rounded-lg font-medium hover:bg-blue-200 transition text-sm">
+                                    ➕ Linje
+                                </button>
+                                <button onclick="addGraphElement('parabola')" class="flex-1 bg-purple-100 text-purple-700 py-2 px-3 rounded-lg font-medium hover:bg-purple-200 transition text-sm">
+                                    ➕ Parabel
+                                </button>
+                                <button onclick="addGraphElement('points')" class="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded-lg font-medium hover:bg-green-200 transition text-sm">
+                                    ➕ Punkter
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Selected Element Parameters -->
+                        <div id="elementParams" class="bg-gray-50 rounded-xl p-4 mb-4">
+                            <p class="text-gray-500 text-sm text-center">Klicka på ett element ovan för att redigera</p>
+                        </div>
+
+                        <!-- Canvas for graph -->
+                        <div class="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
+                            <canvas id="graphCanvas" width="400" height="400" style="width: 100%; height: auto;"></canvas>
+                        </div>
+
+                        <!-- Graph Settings -->
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <div>
+                                <label class="text-xs text-gray-500">X-intervall</label>
+                                <div class="flex gap-2">
+                                    <input type="number" id="xMin" value="-5" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateGraph()">
+                                    <input type="number" id="xMax" value="5" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateGraph()">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Y-intervall</label>
+                                <div class="flex gap-2">
+                                    <input type="number" id="yMin" value="-5" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateGraph()">
+                                    <input type="number" id="yMax" value="5" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateGraph()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Task Creation -->
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">✍️ Skapa uppgift</h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Fråga</label>
+                                <textarea id="graphQuestion" rows="2" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="Avläs f(2) i grafen ovan."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Scaffolding (steg-för-steg tips)</label>
+                                <textarea id="graphScaffolding" rows="3" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="1. Hitta x=2 på x-axeln
+2. Gå uppåt/nedåt tills du träffar grafen
+3. Avläs y-värdet"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Lösning (steg-för-steg)</label>
+                                <textarea id="graphSolution" rows="3" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="1. Vi hittar x=2 på x-axeln
+2. Vi följer linjen uppåt och ser att den korsar grafen vid y=4
+3. Alltså är f(2) = 4"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-600 mb-2">Rätt svar</label>
+                                    <input type="text" id="graphAnswer" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="4">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-600 mb-2">Snabbfråga</label>
+                                    <select id="graphQuickQuestion" class="w-full p-3 border-2 border-gray-200 rounded-xl" onchange="applyQuickQuestion()">
+                                        <option value="">Välj mall...</option>
+                                        <option value="f(x)">Avläs f(x)</option>
+                                        <option value="k">Bestäm lutningen k</option>
+                                        <option value="m">Bestäm m-värdet</option>
+                                        <option value="zero">Hitta nollställen</option>
+                                        <option value="vertex">Hitta vertex</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="mt-6">
+                            <h3 class="font-bold text-gray-700 mb-3">👁️ Förhandsvisning</h3>
+                            <div class="preview-container shadow-lg" id="graphPreview">
+                                <p class="text-gray-400 text-center italic py-4">Fyll i fråga och svar för att se förhandsvisning...</p>
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="mt-4 space-y-3">
+                            <button onclick="previewGraphTask()" class="w-full bg-indigo-100 text-indigo-700 py-3 px-6 rounded-xl font-bold hover:bg-indigo-200 transition">
+                                👁️ Uppdatera förhandsvisning
+                            </button>
+                            <button onclick="saveGraphTask()" class="w-full bg-green-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-green-700 transition shadow-lg">
+                                💾 Spara graf-uppgift
+                            </button>
+                            <div id="graphSaveStatus" class="text-center font-medium"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Format & Example -->
+            <div id="viewFormat" class="hidden p-6">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">📋 Format för ChatGPT</h2>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                        <h3 class="font-bold text-blue-800 mb-3">💡 Tips för att skapa många uppgifter</h3>
+                        <p class="text-blue-700 mb-4">Ge denna prompt till ChatGPT för att generera uppgifter i rätt format:</p>
+                        
+                        <div class="bg-white rounded-lg p-4 border border-blue-200">
+                            <p class="text-gray-700 italic mb-3">"Skapa 20 uppgifter om [ÄMNE] för årskurs 9. Använd exakt detta format för varje uppgift, separera med --- mellan uppgifterna:"</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-gray-800">📝 Exempelformat (kopiera detta till ChatGPT)</h3>
+                            <button onclick="copyExample()" class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-indigo-200 transition">
+                                📋 Kopiera
+                            </button>
+                        </div>
+                        <div class="example-code" id="exampleCode">UPPGIFT:
+Förenkla uttrycket: $(4x + 2y) - (2x - 3y)$
+
+SCAFFOLDING:
+1. Fokusera på en parentes i taget
+2. Tänk på att minus framför parentesen ändrar alla tecken inuti
+
+LÖSNING:
+1. Ta bort första parentesen: $4x + 2y$
+2. Minus framför andra parentesen ger: $-2x + 3y$  
+3. Samla x-termerna: $4x - 2x = 2x$
+4. Samla y-termerna: $2y + 3y = 5y$
+
+SVAR:
+$2x + 5y$
+
+---
+
+UPPGIFT:
+Beräkna $\frac{3}{4} + \frac{2}{3}$
+
+SCAFFOLDING:
+1. Hitta minsta gemensamma nämnare
+2. Skriv om bråken med samma nämnare
+
+LÖSNING:
+1. MGN för 4 och 3 är 12
+2. $\frac{3}{4} = \frac{9}{12}$
+3. $\frac{2}{3} = \frac{8}{12}$
+4. $\frac{9}{12} + \frac{8}{12} = \frac{17}{12}$
+
+SVAR:
+$\frac{17}{12}$ eller $1\frac{5}{12}$
+
+---
+
+UPPGIFT:
+Lös ekvationen: $3x^2 - 12 = 0$
+
+SCAFFOLDING:
+1. Flytta över konstanten till höger sida
+2. Dela med koefficienten framför $x^2$
+3. Ta kvadratroten
+
+LÖSNING:
+1. Addera 12 på båda sidor: $3x^2 = 12$
+2. Dela med 3: $x^2 = 4$
+3. Ta kvadratroten: $x = \pm\sqrt{4}$
+4. $x = \pm 2$
+
+SVAR:
+$x = 2$ eller $x = -2$</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-green-50 border border-green-200 rounded-xl p-6">
+                            <h3 class="font-bold text-green-800 mb-3">✅ Matematisk formatering som stöds</h3>
+                            <ul class="text-green-700 space-y-2 text-sm">
+                                <li><code class="bg-white px-2 py-1 rounded">$...$</code> = Inline-matte (i text)</li>
+                                <li><code class="bg-white px-2 py-1 rounded">$$...$$</code> = Centrerad matte</li>
+                                <li><code class="bg-white px-2 py-1 rounded">\frac{a}{b}</code> = Bråktal ½</li>
+                                <li><code class="bg-white px-2 py-1 rounded">x^2</code> = Upphöjt x²</li>
+                                <li><code class="bg-white px-2 py-1 rounded">x_1</code> = Nedsänkt x₁</li>
+                                <li><code class="bg-white px-2 py-1 rounded">\sqrt{x}</code> = Kvadratrot √x</li>
+                                <li><code class="bg-white px-2 py-1 rounded">\pm</code> = Plus/minus ±</li>
+                                <li><code class="bg-white px-2 py-1 rounded">\cdot</code> = Multiplikation ·</li>
+                                <li><code class="bg-white px-2 py-1 rounded">\pi</code> = Pi π</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
+                            <h3 class="font-bold text-amber-800 mb-3">⚠️ Viktigt att tänka på</h3>
+                            <ul class="text-amber-700 space-y-2 text-sm">
+                                <li>• Separera uppgifter med <code class="bg-white px-2 py-1 rounded">---</code></li>
+                                <li>• Börja alltid med <strong>UPPGIFT:</strong></li>
+                                <li>• <strong>SCAFFOLDING:</strong> är valfritt men rekommenderat</li>
+                                <li>• <strong>LÖSNING:</strong> numrera stegen (1. 2. 3.)</li>
+                                <li>• <strong>SVAR:</strong> måste finnas sist</li>
+                                <li>• Använd $ runt all matematik</li>
+                                <li>• Dubbelkolla att bråk/potenser ser rätt ut</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-purple-50 border border-purple-200 rounded-xl p-6">
+                        <h3 class="font-bold text-purple-800 mb-3">🎯 Prompt-exempel för ChatGPT</h3>
+                        <div class="bg-white rounded-lg p-4 text-gray-700">
+                            <p class="mb-2"><strong>För algebra:</strong></p>
+                            <p class="italic text-sm mb-4">"Skapa 15 uppgifter om att förenkla algebraiska uttryck med parenteser för årskurs 9. Inkludera både enkla (en parentes) och svårare (flera parenteser). Använd formatet med UPPGIFT, SCAFFOLDING, LÖSNING och SVAR. Separera med ---"</p>
+                            
+                            <p class="mb-2"><strong>För bråktal:</strong></p>
+                            <p class="italic text-sm mb-4">"Skapa 20 uppgifter om addition och subtraktion av bråktal för årskurs 9. Variera svårighetsgraden. Skriv bråk som \frac{täljare}{nämnare}. Använd formatet med UPPGIFT, SCAFFOLDING, LÖSNING och SVAR. Separera med ---"</p>
+                            
+                            <p class="mb-2"><strong>För procent:</strong></p>
+                            <p class="italic text-sm">"Skapa 15 textuppgifter om procentberäkningar (del av helhet, förändring, pålägg) för årskurs 9. Använd vardagliga exempel. Använd formatet med UPPGIFT, SCAFFOLDING, LÖSNING och SVAR. Separera med ---"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Manage -->
+            <div id="viewList" class="hidden p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">📚 Befintliga Uppgifter</h2>
+                    <button onclick="loadTasks()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition">
+                        🔄 Ladda om
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <input type="text" id="searchFilter" placeholder="🔍 Sök i uppgifter..." class="flex-1 min-w-[200px] p-2 border-2 border-gray-200 rounded-lg text-sm" oninput="filterTasks()">
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs font-bold text-gray-500 uppercase">Kapitel:</span>
+                        <button class="filter-chip active" data-filter="chapter" data-value="all" onclick="toggleFilter(this)">Alla</button>
+                        <button class="filter-chip" data-filter="chapter" data-value="1" onclick="toggleFilter(this)">Del 1</button>
+                        <button class="filter-chip" data-filter="chapter" data-value="2" onclick="toggleFilter(this)">Del 2</button>
+                        <button class="filter-chip" data-filter="chapter" data-value="3" onclick="toggleFilter(this)">Del 3</button>
+                        <button class="filter-chip" data-filter="chapter" data-value="4" onclick="toggleFilter(this)">Del 4</button>
+                        <button class="filter-chip" data-filter="chapter" data-value="5" onclick="toggleFilter(this)">Del 5</button>
+                    </div>
+                </div>
+
+                <div id="taskStats" class="text-sm text-gray-500 mb-3"></div>
+                <div id="taskList" class="space-y-3 max-h-[600px] overflow-y-auto">
+                    <p class="text-gray-400 text-center py-8">Laddar uppgifter...</p>
+                </div>
+            </div>
+
+            <!-- TAB 4: Genomgång -->
+            <div id="viewGenomgang" class="hidden p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">📖 Skapa Genomgång</h2>
+                        <p class="text-gray-500 text-sm mt-1">Skriv en genomgång med matematiska formler och formaterad text</p>
+                    </div>
+                    <button onclick="loadExistingGenomgang()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition">
+                        🔄 Ladda befintlig
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left: Editor -->
+                    <div>
+                        <!-- Current Path Info -->
+                        <div class="bg-indigo-50 rounded-xl p-4 mb-4">
+                            <div class="text-sm text-indigo-600 font-medium">📂 Genomgång sparas till:</div>
+                            <div id="genomgangPath" class="text-indigo-800 font-mono text-sm mt-1">...Taluppfattning/prio/genomgang</div>
+                        </div>
+
+                        <!-- Toolbar -->
+                        <div class="bg-gray-50 rounded-xl p-3 mb-4 flex flex-wrap gap-2">
+                            <button onclick="insertGenomgangFormat('bold')" class="toolbar-btn" title="Fetstil">
+                                <strong>B</strong>
+                            </button>
+                            <button onclick="insertGenomgangFormat('italic')" class="toolbar-btn" title="Kursiv">
+                                <em>I</em>
+                            </button>
+                            <button onclick="insertGenomgangFormat('heading')" class="toolbar-btn" title="Rubrik">
+                                H1
+                            </button>
+                            <button onclick="insertGenomgangFormat('subheading')" class="toolbar-btn" title="Underrubrik">
+                                H2
+                            </button>
+                            <div class="w-px bg-gray-300 mx-1"></div>
+                            <button onclick="insertGenomgangFormat('math')" class="toolbar-btn" title="Matematisk formel (centrerad)">
+                                ∑ Math
+                            </button>
+                            <button onclick="insertGenomgangFormat('inlinemath')" class="toolbar-btn" title="Inline matematik">
+                                $x$
+                            </button>
+                            <div class="w-px bg-gray-300 mx-1"></div>
+                            <button onclick="insertGenomgangFormat('list')" class="toolbar-btn" title="Punktlista">
+                                • Lista
+                            </button>
+                            <button onclick="insertGenomgangFormat('numlist')" class="toolbar-btn" title="Numrerad lista">
+                                1. Lista
+                            </button>
+                            <div class="w-px bg-gray-300 mx-1"></div>
+                            <button onclick="insertGenomgangFormat('tip')" class="toolbar-btn bg-green-100 text-green-700" title="Tips-ruta">
+                                💡 Tips
+                            </button>
+                            <button onclick="insertGenomgangFormat('warning')" class="toolbar-btn bg-amber-100 text-amber-700" title="Varning-ruta">
+                                ⚠️ Varning
+                            </button>
+                            <button onclick="insertGenomgangFormat('example')" class="toolbar-btn bg-blue-100 text-blue-700" title="Exempel-ruta">
+                                📝 Exempel
+                            </button>
+                        </div>
+
+                        <!-- Color Picker -->
+                        <div class="bg-gray-50 rounded-xl p-3 mb-4">
+                            <label class="text-xs font-bold text-gray-500 mb-2 block">🎨 Textfärg</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="insertGenomgangColor('red')" class="w-8 h-8 rounded-full bg-red-500 hover:ring-2 ring-red-300 transition" title="Röd"></button>
+                                <button onclick="insertGenomgangColor('blue')" class="w-8 h-8 rounded-full bg-blue-500 hover:ring-2 ring-blue-300 transition" title="Blå"></button>
+                                <button onclick="insertGenomgangColor('green')" class="w-8 h-8 rounded-full bg-green-500 hover:ring-2 ring-green-300 transition" title="Grön"></button>
+                                <button onclick="insertGenomgangColor('purple')" class="w-8 h-8 rounded-full bg-purple-500 hover:ring-2 ring-purple-300 transition" title="Lila"></button>
+                                <button onclick="insertGenomgangColor('orange')" class="w-8 h-8 rounded-full bg-orange-500 hover:ring-2 ring-orange-300 transition" title="Orange"></button>
+                                <button onclick="insertGenomgangColor('black')" class="w-8 h-8 rounded-full bg-gray-800 hover:ring-2 ring-gray-300 transition" title="Svart"></button>
+                            </div>
+                        </div>
+
+                        <!-- Editor Area -->
+                        <textarea id="genomgangEditor" class="w-full h-96 p-4 border-2 border-gray-200 rounded-xl font-mono text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 transition" placeholder="# Prioriteringsreglerna
+
+Prioriteringsreglerna avgör i vilken ordning vi utför beräkningar.
+
+## Ordningen är:
+
+1. **Parenteser** - Räkna alltid det som står inom parentes först
+2. **Potenser och rötter** - Exempelvis $x^2$ eller $\sqrt{9}$
+3. **Multiplikation och division** - Från vänster till höger
+4. **Addition och subtraktion** - Från vänster till höger
+
+$$2 + 3 \cdot 4 = 2 + 12 = 14$$
+
+:::tip
+Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addition, Subtraction)
+:::
+
+:::example
+**Exempel:** Beräkna $5 + 2 \cdot 3^2$
+
+1. Först potensen: $3^2 = 9$
+2. Sedan multiplikation: $2 \cdot 9 = 18$
+3. Sist addition: $5 + 18 = 23$
+:::"></textarea>
+
+                        <div class="flex gap-3 mt-4">
+                            <button onclick="previewGenomgang()" class="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg">
+                                👁️ Förhandsgranska
+                            </button>
+                            <button onclick="saveGenomgang()" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-green-700 transition shadow-lg">
+                                💾 Spara genomgång
+                            </button>
+                        </div>
+                        <div id="genomgangStatus" class="mt-3 text-center font-medium"></div>
+                    </div>
+
+                    <!-- Right: Preview -->
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">👁️ Förhandsvisning</h3>
+                        <div class="preview-container shadow-lg border-2 border-gray-100" id="genomgangPreview" style="min-height: 400px;">
+                            <p class="text-gray-400 text-center py-8 italic">Skriv i editorn och klicka "Förhandsgranska" för att se resultatet...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: Diagram Creator -->
+            <div id="viewDiagram" class="hidden p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">📊 Skapa Diagram-uppgifter</h2>
+                        <p class="text-gray-500 text-sm mt-1">Bygg uppgifter med stapel-, linje- och cirkeldiagram</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left: Diagram Builder -->
+                    <div>
+                        <!-- Diagram Type Selection -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-bold text-gray-600 mb-2">Diagramtyp</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button id="diagramTypeBar" class="path-btn active" onclick="setDiagramType('bar')">
+                                    📊 Stapeldiagram
+                                </button>
+                                <button id="diagramTypeLine" class="path-btn" onclick="setDiagramType('line')">
+                                    📈 Linjediagram
+                                </button>
+                                <button id="diagramTypePie" class="path-btn" onclick="setDiagramType('pie')">
+                                    🥧 Cirkeldiagram
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Diagram Title -->
+                        <div class="mb-4">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Diagramrubrik</label>
+                            <input type="text" id="diagramTitle" class="w-full p-2 rounded-lg border-2 border-gray-200" placeholder="t.ex. Antal elever per sport" onchange="updateDiagramPreview()">
+                        </div>
+
+                        <!-- Axis Labels (for bar/line) -->
+                        <div id="axisLabelsSection" class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">X-axel (kategori)</label>
+                                <input type="text" id="diagramXLabel" class="w-full p-2 rounded-lg border-2 border-gray-200" placeholder="t.ex. Sport" onchange="updateDiagramPreview()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Y-axel (värde)</label>
+                                <input type="text" id="diagramYLabel" class="w-full p-2 rounded-lg border-2 border-gray-200" placeholder="t.ex. Antal elever" onchange="updateDiagramPreview()">
+                            </div>
+                        </div>
+
+                        <!-- Data Entry -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-bold text-gray-600">Data</label>
+                                <button onclick="addDiagramDataRow()" class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-lg font-medium text-sm hover:bg-indigo-200 transition">
+                                    ➕ Lägg till rad
+                                </button>
+                            </div>
+                            <div id="diagramDataRows" class="space-y-2 max-h-48 overflow-y-auto">
+                                <!-- Data rows will be added here -->
+                            </div>
+                        </div>
+
+                        <!-- Diagram Colors -->
+                        <div class="mb-4">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Färgschema</label>
+                            <div class="flex gap-2">
+                                <button onclick="setDiagramColorScheme('default')" class="diagram-color-btn active" data-scheme="default">
+                                    <span style="background:#4f46e5" class="w-4 h-4 rounded inline-block mr-1"></span>Standard
+                                </button>
+                                <button onclick="setDiagramColorScheme('warm')" class="diagram-color-btn" data-scheme="warm">
+                                    <span style="background:#ef4444" class="w-4 h-4 rounded inline-block mr-1"></span>Varm
+                                </button>
+                                <button onclick="setDiagramColorScheme('cool')" class="diagram-color-btn" data-scheme="cool">
+                                    <span style="background:#06b6d4" class="w-4 h-4 rounded inline-block mr-1"></span>Kall
+                                </button>
+                                <button onclick="setDiagramColorScheme('rainbow')" class="diagram-color-btn" data-scheme="rainbow">
+                                    <span style="background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e,#3b82f6)" class="w-4 h-4 rounded inline-block mr-1"></span>Regnbåge
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pie Chart Options (only visible for pie charts) -->
+                        <div id="pieChartOptions" class="mb-4 hidden">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="showPiePercentage" checked onchange="updateDiagramPreview()" class="w-5 h-5 rounded border-2 border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm font-medium text-gray-700">Visa procent i cirkeldiagrammet</span>
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 ml-7">Avmarkera om eleverna ska räkna ut procenten själva</p>
+                        </div>
+
+                        <!-- Diagram Canvas Preview -->
+                        <div class="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
+                            <canvas id="diagramCanvas" width="500" height="350" style="width: 100%; height: auto;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Right: Question Builder & Preview -->
+                    <div>
+                        <!-- Question Input -->
+                        <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                            <h3 class="font-bold text-gray-700 mb-3">📝 Uppgiftstext</h3>
+                            
+                            <div class="mb-3">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fråga</label>
+                                <textarea id="diagramQuestion" class="w-full p-3 rounded-lg border-2 border-gray-200 h-24" placeholder="t.ex. Diagrammet visar hur många elever som valde olika sporter. Hur många elever valde fotboll?"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ledtrådar (en per rad)</label>
+                                <textarea id="diagramScaffolding" class="w-full p-3 rounded-lg border-2 border-gray-200 h-20" placeholder="1. Titta på stapeln för fotboll&#10;2. Läs av värdet på y-axeln"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Lösning (steg för steg, ett per rad)</label>
+                                <textarea id="diagramSolution" class="w-full p-3 rounded-lg border-2 border-gray-200 h-20" placeholder="1. Vi hittar stapeln för fotboll&#10;2. Vi läser av att den når upp till 15&#10;3. Svaret är 15 elever"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Svar</label>
+                                    <input type="text" id="diagramAnswer" class="w-full p-2 rounded-lg border-2 border-gray-200" placeholder="t.ex. 15 elever">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Svarsenheter (valfritt)</label>
+                                    <input type="text" id="diagramAnswerUnit" class="w-full p-2 rounded-lg border-2 border-gray-200" placeholder="t.ex. elever, %, kr">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="preview-container shadow-lg mb-4" id="diagramTaskPreview">
+                            <p class="text-gray-400 text-center italic py-8">Fyll i data och fråga för att se förhandsvisning...</p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="space-y-3">
+                            <button onclick="previewDiagramTask()" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg">
+                                👁️ Förhandsgranska uppgift
+                            </button>
+                            <button onclick="saveDiagramTask()" class="w-full bg-green-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-green-700 transition shadow-lg">
+                                💾 Spara uppgift till Firebase
+                            </button>
+                            <button onclick="clearDiagramForm()" class="w-full bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-bold hover:bg-gray-300 transition">
+                                🗑️ Rensa formulär
+                            </button>
+                            <div id="diagramSaveStatus" class="text-center font-medium"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+        
+        // Expose to window for edit functions
+        window.updateDoc = updateDoc;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD9wbtUB4MUFq1BF00upHxIS6DQK9aS0vQ",
+            authDomain: "praktiska-np.firebaseapp.com",
+            projectId: "praktiska-np",
+            storageBucket: "praktiska-np.firebasestorage.app",
+            messagingSenderId: "239785866823",
+            appId: "1:239785866823:web:55ffb3a3485d32984ca362"
+        };
+        
+        const appId = 'default-app-id';
+        
+        // ============ COURSE STRUCTURE ============
+        // Complete structure based on pathways.txt - KAPITELTRÄNING
+        const COURSE_STRUCTURE = {
+            Taluppfattning: {
+                name: 'Taluppfattning',
+                yearLevel: 'Ma 1',
+                parts: [
+                    { id: 'prio', name: 'Prioriteringsreglen' },
+                    { id: 'neg', name: 'Negativa tal' },
+                    { id: 'potenser', name: 'Potenser' },
+                    { id: 'brak', name: 'Bråktal' },
+                    { id: 'forlangforkort', name: 'Förläng och förkorta' },
+                    { id: 'overslags', name: 'Överslagsräkning' },
+                    { id: 'blandadetal', name: 'Blandade uppgifter (Som prov)' }
+                ]
+            },
+            Algebra: {
+                name: 'Algebra',
+                yearLevel: 'Ma 1',
+                parts: [
+                    { id: 'uttryck', name: 'Uttryck' },
+                    { id: 'forenklauttryck', name: 'Förenkla uttryck' },
+                    { id: 'parenteser', name: 'Parenteser' },
+                    { id: 'vardeavuttryck', name: 'Beräkna värde av uttryck' },
+                    { id: 'faktorisera', name: 'Faktorisera' },
+                    { id: 'formel', name: 'Lös ut ur formeln' },
+                    { id: 'ekvplusminus', name: 'Ekvationer plus och minus' },
+                    { id: 'ekvmultidiv', name: 'Ekvationer multiplikation/division' },
+                    { id: 'ekvparentes', name: 'Ekvationer med parentes' },
+                    { id: 'ekvbadasida', name: 'Ekvation med x på båda sidor' },
+                    { id: 'algebrablandat', name: 'Blandade uppgifter' }
+                ]
+            },
+            Procent: {
+                name: 'Procent',
+                yearLevel: 'Ma 1',
+                parts: [
+                    { id: 'brakdeciproform', name: 'Bråk/Decimal/Procentform' },
+                    { id: 'delandelhela', name: 'Delen, andelen, det hela' },
+                    { id: 'procentenheter', name: 'Procentenheter' },
+                    { id: 'forandringsfaktorn', name: 'Förändringsfaktorn' },
+                    { id: 'upprepadforandring', name: 'Upprepad förändring' },
+                    { id: 'baklänges', name: 'Baklänges räkning' },
+                    { id: 'procentblandat', name: 'Blandade uppgifter' }
+                ]
+            },
+            Sannolikhet: {
+                name: 'Sannolikhet',
+                yearLevel: 'Ma 1',
+                parts: [
+                    { id: 'grundsannolikhet', name: 'Grundläggande sannolikhet' },
+                    { id: 'enklasannolikheter', name: 'Enkla sannolikheter' },
+                    { id: 'flerautfall', name: 'Flera utfall' },
+                    { id: 'oberoendeberoende', name: 'Oberoende o beroende' },
+                    { id: 'komplement', name: 'Komplementhändelse' },
+                    { id: 'sannolikhetblandade', name: 'Blandade uppgifter' }
+                ]
+            },
+            FunktionerSamband: {
+                name: 'Funktioner och Samband',
+                yearLevel: 'Ma 1',
+                parts: [
+                    { id: 'anvandaformler', name: 'Använda formler f(x)' },
+                    { id: 'ratalinjen', name: 'Den räta linjen' },
+                    { id: 'procentuell', name: 'Procentuell förändring' },
+                    { id: 'jamfortolka', name: 'Jämföra och tolka' },
+                    { id: 'funktionerblandade', name: 'Blandade uppgifter' }
+                ]
+            },
+            Statistik: {
+                name: 'Statistik',
+                yearLevel: 'Ma 1',
+                parts: [
+                    { id: 'lagesmatt', name: 'Lägesmått och variationsbredd' },
+                    { id: 'diagramtolkning', name: 'Diagram och tolkning' },
+                    { id: 'begreppsamhallet', name: 'Begrepp i samhället' },
+                    { id: 'kritiskttankande', name: 'Kritiskt tänkande' }
+                ]
+            }
+        };
+
+        // ============ NP STRUCTURE ============
+        // Typuppgifter NP - separate path structure
+        const NP_STRUCTURE = {
+            Algebra: {
+                name: 'Algebra',
+                yearLevel: 'NP',
+                parts: [
+                    { id: 'forenklauttryck', name: 'Förenkling av uttryck' },
+                    { id: 'ekvationer', name: 'Ekvationer' },
+                    { id: 'faktorisera', name: 'Faktorisera' },
+                    { id: 'monsterformler', name: 'Mönster och formler' },
+                    { id: 'losuturformler', name: 'Lös ut ur formler' }
+                ]
+            },
+            FunktionerSamband: {
+                name: 'Funktioner',
+                yearLevel: 'NP',
+                parts: [
+                    { id: 'funktionsbegreppet', name: 'Funktionsbegreppet f(x)' },
+                    { id: 'linjarafunktioner', name: 'Linjära funktioner' },
+                    { id: 'exponentiellafunktioner', name: 'Exponentiella funktioner' },
+                    { id: 'koordinatsystem', name: 'Koordinatsystem, grafer och punkter' }
+                ]
+            },
+            Taluppfattning: {
+                name: 'Taluppfattning',
+                yearLevel: 'NP',
+                parts: [
+                    { id: 'Prioriteringsregeln', name: 'Prioriteringsregeln' },
+                    { id: 'braktal', name: 'Bråktal' },
+                    { id: 'potenser', name: 'Potenser' }
+                ]
+            },
+            Procent: {
+                name: 'Procent',
+                yearLevel: 'NP',
+                parts: [
+                    { id: 'Förändringsfaktorn', name: 'Förändringsfaktorn (intro)' },
+                    { id: 'ff', name: 'Förändringsfaktorn' },
+                    { id: 'upprepadff', name: 'Upprepad förändring' },
+                    { id: 'lanoranta', name: 'Lån, ränta och amortering' }
+                ]
+            },
+            Sannolikhet: {
+                name: 'Sannolikhet',
+                yearLevel: 'NP',
+                parts: [
+                    { id: 'beroendeoberoende', name: 'Beroende och oberoende-händelse' },
+                    { id: 'komplement', name: 'Komplementhändelse' }
+                ]
+            }
+        };
+
+        // Get path for a specific topic and part - supports both collections and course levels
+        function getFirebasePath(topic, partId) {
+            if (currentCollection === 'math_tasks') {
+                return `artifacts/${appId}/public/data/math_tasks/${topic}/${partId}`;
+            }
+            // For campaigns, check if course level is 'grund'
+            const level = document.getElementById('levelSelect').value;
+            const suffix = level === 'grund' ? 'grund' : '';
+            return `artifacts/${appId}/public/data/campaigns/${topic}/${partId}${suffix}`;
+        }
+        
+        // Extract base part ID (remove 'grund' suffix if present)
+        function getBasePartId(partId) {
+            return partId.replace(/grund$/, '');
+        }
+        
+        // Get genomgång path - separate folder structure
+        function getGenomgangPath(topic) {
+            if (currentCollection === 'math_tasks') {
+                return `artifacts/${appId}/public/data/math_tasks/${topic}/genomgang`;
+            }
+            return `artifacts/${appId}/public/data/campaigns/${topic}/genomgang`;
+        }
+        
+        // Get genomgång document ID
+        function getGenomgangDocId(partId) {
+            const basePartId = getBasePartId(partId);
+            return `${basePartId}genomgang`;
+        }
+        
+        // Get current structure based on collection
+        function getCurrentStructure() {
+            return currentCollection === 'math_tasks' ? NP_STRUCTURE : COURSE_STRUCTURE;
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // Expose db/auth and getFirebasePath to window for edit functions
+        window.db = db;
+        window.auth = auth;
+        window.getFirebasePath = getFirebasePath;
+        window.firebaseReady = false;
+
+        // State
+        let currentCollection = 'campaigns';
+        let parsedTasks = [];
+        let currentTaskIndex = 0;
+        let allTasks = [];
+        let activeFilters = { chapter: 'all' };
+
+        // Initialize
+        function withTimeout(promise, ms, label) {
+            let t;
+            const timeout = new Promise((_, reject) => {
+                t = setTimeout(() => reject(new Error(`${label} tog för lång tid (>${Math.round(ms/1000)}s).`)), ms);
+            });
+            return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
+        }
+
+        const statusDot = document.getElementById('firebaseStatus');
+        const statusText = document.getElementById('firebaseStatusText');
+
+        // Track auth state explicitly (helps diagnose "häng")
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log('Auth ready:', user.uid);
+            }
+        });
+
+        async function initFirebase() {
+            try {
+                window.firebaseReady = false;
+                statusDot.className = 'w-3 h-3 rounded-full bg-yellow-400 animate-pulse';
+                statusText.textContent = 'Ansluter till Firebase...';
+
+                // Anonymous sign-in can sometimes hang (blocked 3rd-party cookies/network). Timebox it.
+                await withTimeout(signInAnonymously(auth), 12000, 'Inloggning');
+
+                statusDot.className = 'w-3 h-3 rounded-full bg-green-400';
+                statusText.textContent = 'Ansluten till Firebase ✓';
+                window.firebaseReady = true;
+                populateTopicSelect();
+                await loadTasks();
+            } catch (e) {
+                console.error('Firebase init error:', e);
+                statusDot.className = 'w-3 h-3 rounded-full bg-red-400';
+                statusText.textContent = 'Fel vid anslutning: ' + (e?.message || e);
+                window.firebaseReady = false;
+
+                // Fallback: try loading tasks anyway (in case rules allow reads without auth)
+                try {
+                    populateTopicSelect();
+                    await loadTasks();
+                    statusText.textContent += ' (läser utan inloggning)';
+                } catch (readErr) {
+                    console.error('Fallback read error:', readErr);
+                }
+            }
+        }
+
+        initFirebase();
+
+        // Populate topic select based on collection
+        function populateTopicSelect() {
+            const topicSelect = document.getElementById('topicSelect');
+            const structure = getCurrentStructure();
+            
+            topicSelect.innerHTML = '';
+            
+            Object.keys(structure).forEach(topicKey => {
+                const option = document.createElement('option');
+                option.value = topicKey;
+                option.textContent = structure[topicKey].name;
+                topicSelect.appendChild(option);
+            });
+            
+            populateChapterSelect();
+        }
+
+        // Populate chapter select based on topic
+        function populateChapterSelect() {
+            const topic = document.getElementById('topicSelect').value;
+            const chapterSelect = document.getElementById('chapterSelect');
+            const structure = getCurrentStructure()[topic];
+            
+            chapterSelect.innerHTML = '';
+            
+            if (structure && structure.parts) {
+                structure.parts.forEach((part, index) => {
+                    const option = document.createElement('option');
+                    option.value = part.id;
+                    option.textContent = `Del ${index + 1}: ${part.name}`;
+                    chapterSelect.appendChild(option);
+                });
+            }
+            
+            updatePathDisplay();
+        }
+
+        // Path update
+        function updatePathDisplay() {
+            const topic = document.getElementById('topicSelect').value;
+            const partId = document.getElementById('chapterSelect').value;
+            const collectionName = currentCollection === 'math_tasks' ? 'math_tasks' : 'campaigns';
+            const level = document.getElementById('levelSelect').value;
+            const suffix = (currentCollection === 'campaigns' && level === 'grund') ? 'grund' : '';
+            
+            const pathText = `Sökväg: .../${collectionName}/${topic}/${partId}${suffix}`;
+            document.getElementById('currentPath').textContent = pathText;
+            
+            // Show/hide level selector based on collection type
+            // Campaigns (Kapitelträning) supports Ma 1 / Matematik Grund
+            // NP tasks don't have course level selection
+            const levelSelect = document.getElementById('levelSelect');
+            if (currentCollection === 'math_tasks') {
+                levelSelect.disabled = true;
+                levelSelect.parentElement.style.opacity = '0.5';
+            } else {
+                levelSelect.disabled = false;
+                levelSelect.parentElement.style.opacity = '1';
+            }
+        }
+
+        window.setCollection = function(type) {
+            currentCollection = type;
+            document.getElementById('pathCampaigns').classList.toggle('active', type === 'campaigns');
+            document.getElementById('pathMathTasks').classList.toggle('active', type === 'math_tasks');
+            populateTopicSelect();
+            updatePathDisplay();
+            loadTasks();
+        };
+
+        document.getElementById('topicSelect').onchange = () => { 
+            populateChapterSelect();
+            updatePathDisplay();
+            loadTasks(); 
+        };
+        document.getElementById('chapterSelect').onchange = () => { 
+            updatePathDisplay(); 
+            loadTasks(); 
+        };
+        document.getElementById('levelSelect').onchange = () => {
+            updatePathDisplay();
+            loadTasks();
+        };
+
+        // Tab switching
+        document.getElementById('tabBulkBtn').onclick = () => switchTab('Bulk');
+        document.getElementById('tabGraphBtn').onclick = () => { switchTab('Graph'); initGraph(); };
+        document.getElementById('tabFormatBtn').onclick = () => switchTab('Format');
+        document.getElementById('tabListBtn').onclick = () => switchTab('List');
+        document.getElementById('tabGenomgangBtn').onclick = () => { switchTab('Genomgang'); updateGenomgangPath(); };
+        document.getElementById('tabDiagramBtn').onclick = () => { switchTab('Diagram'); initDiagram(); };
+
+        function switchTab(name) {
+            ['Bulk', 'Graph', 'Format', 'List', 'Genomgang', 'Diagram'].forEach(t => {
+                document.getElementById('view' + t).classList.toggle('hidden', t !== name);
+                document.getElementById('tab' + t + 'Btn').classList.toggle('active', t === name);
+            });
+        }
+
+        // ============ GRAPH CREATOR ============
+        let graphElements = []; // Array of {type, params, color, id}
+        let selectedElementId = null;
+        let graphCanvas, graphCtx;
+        let graphInitialized = false;
+        let elementCounter = 0;
+        
+        const graphColors = ['#4f46e5', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#0891b2'];
+
+        function initGraph() {
+            if (graphInitialized) {
+                renderElementsList();
+                updateGraph();
+                return;
+            }
+            graphCanvas = document.getElementById('graphCanvas');
+            graphCtx = graphCanvas.getContext('2d');
+            graphInitialized = true;
+            
+            // Add one default line
+            addGraphElement('line');
+        }
+
+        window.addGraphElement = function(type) {
+            const id = ++elementCounter;
+            const color = graphColors[(graphElements.length) % graphColors.length];
+            
+            let params = {};
+            if (type === 'line') {
+                params = { k: 1, m: 0 };
+            } else if (type === 'parabola') {
+                params = { a: 1, b: 0, c: 0 };
+            } else if (type === 'points') {
+                params = { points: '(0,0)' };
+            }
+            
+            graphElements.push({ id, type, params, color });
+            selectedElementId = id;
+            renderElementsList();
+            renderElementParams();
+            updateGraph();
+        };
+        
+        window.selectElement = function(id) {
+            selectedElementId = id;
+            renderElementsList();
+            renderElementParams();
+        };
+        
+        window.removeElement = function(id) {
+            graphElements = graphElements.filter(el => el.id !== id);
+            if (selectedElementId === id) {
+                selectedElementId = graphElements.length > 0 ? graphElements[0].id : null;
+            }
+            renderElementsList();
+            renderElementParams();
+            updateGraph();
+        };
+        
+        function renderElementsList() {
+            const container = document.getElementById('graphElementsList');
+            if (!container) return;
+            
+            if (graphElements.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm text-center py-2">Lägg till element med knapparna nedan</p>';
+                return;
+            }
+            
+            container.innerHTML = graphElements.map(el => {
+                const isSelected = el.id === selectedElementId;
+                const typeLabel = el.type === 'line' ? '📏 Linje' : el.type === 'parabola' ? '〰️ Parabel' : '⚫ Punkter';
+                let valueLabel = '';
+                if (el.type === 'line') {
+                    valueLabel = `y = ${el.params.k}x + ${el.params.m}`;
+                } else if (el.type === 'parabola') {
+                    valueLabel = `y = ${el.params.a}x² + ${el.params.b}x + ${el.params.c}`;
+                } else {
+                    valueLabel = el.params.points;
+                }
+                
+                return `
+                    <div onclick="selectElement(${el.id})" class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ${isSelected ? 'bg-indigo-100 border-2 border-indigo-400' : 'bg-white border-2 border-gray-200 hover:border-indigo-300'}">
+                        <div class="w-4 h-4 rounded-full" style="background: ${el.color}"></div>
+                        <span class="text-sm font-medium flex-1">${typeLabel}: ${valueLabel}</span>
+                        <button onclick="event.stopPropagation(); removeElement(${el.id})" class="text-red-500 hover:text-red-700 text-lg">×</button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderElementParams() {
+            const container = document.getElementById('elementParams');
+            if (!container) return;
+            
+            const el = graphElements.find(e => e.id === selectedElementId);
+            if (!el) {
+                container.innerHTML = '<p class="text-gray-500 text-sm text-center">Klicka på ett element ovan för att redigera</p>';
+                return;
+            }
+            
+            if (el.type === 'line') {
+                container.innerHTML = `
+                    <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">📏 Linje: y = kx + m</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-500">k (lutning)</label>
+                            <input type="number" value="${el.params.k}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'k', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">m (y-intercept)</label>
+                            <input type="number" value="${el.params.m}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'm', this.value)">
+                        </div>
+                    </div>
+                `;
+            } else if (el.type === 'parabola') {
+                container.innerHTML = `
+                    <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">〰️ Parabel: y = ax² + bx + c</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-500">a</label>
+                            <input type="number" value="${el.params.a}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'a', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">b</label>
+                            <input type="number" value="${el.params.b}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'b', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">c</label>
+                            <input type="number" value="${el.params.c}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'c', this.value)">
+                        </div>
+                    </div>
+                `;
+            } else if (el.type === 'points') {
+                container.innerHTML = `
+                    <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">⚫ Punkter (separera med komma)</label>
+                    <input type="text" value="${el.params.points}" class="w-full p-2 border-2 border-gray-200 rounded-lg" placeholder="(1,2), (3,4), (-2,1)" onchange="updateElementParam(${el.id}, 'points', this.value)">
+                `;
+            }
+        }
+        
+        window.updateElementParam = function(id, param, value) {
+            const el = graphElements.find(e => e.id === id);
+            if (!el) return;
+            
+            if (param === 'points') {
+                el.params[param] = value;
+            } else {
+                el.params[param] = parseFloat(value) || 0;
+            }
+            renderElementsList();
+            updateGraph();
+        };
+
+        window.updateGraph = function() {
+            if (!graphCanvas || !graphCtx) return;
+            
+            const width = graphCanvas.width;
+            const height = graphCanvas.height;
+            const xMin = parseFloat(document.getElementById('xMin').value) || -5;
+            const xMax = parseFloat(document.getElementById('xMax').value) || 5;
+            const yMin = parseFloat(document.getElementById('yMin').value) || -5;
+            const yMax = parseFloat(document.getElementById('yMax').value) || 5;
+            
+            // Clear canvas
+            graphCtx.fillStyle = 'white';
+            graphCtx.fillRect(0, 0, width, height);
+            
+            // Helper functions
+            const toPixelX = x => ((x - xMin) / (xMax - xMin)) * width;
+            const toPixelY = y => height - ((y - yMin) / (yMax - yMin)) * height;
+            
+            // Draw grid
+            graphCtx.strokeStyle = '#e5e7eb';
+            graphCtx.lineWidth = 1;
+            
+            for (let x = Math.ceil(xMin); x <= xMax; x++) {
+                graphCtx.beginPath();
+                graphCtx.moveTo(toPixelX(x), 0);
+                graphCtx.lineTo(toPixelX(x), height);
+                graphCtx.stroke();
+            }
+            for (let y = Math.ceil(yMin); y <= yMax; y++) {
+                graphCtx.beginPath();
+                graphCtx.moveTo(0, toPixelY(y));
+                graphCtx.lineTo(width, toPixelY(y));
+                graphCtx.stroke();
+            }
+            
+            // Draw axes
+            graphCtx.strokeStyle = '#374151';
+            graphCtx.lineWidth = 2;
+            
+            // X-axis
+            if (yMin <= 0 && yMax >= 0) {
+                graphCtx.beginPath();
+                graphCtx.moveTo(0, toPixelY(0));
+                graphCtx.lineTo(width, toPixelY(0));
+                graphCtx.stroke();
+            }
+            
+            // Y-axis
+            if (xMin <= 0 && xMax >= 0) {
+                graphCtx.beginPath();
+                graphCtx.moveTo(toPixelX(0), 0);
+                graphCtx.lineTo(toPixelX(0), height);
+                graphCtx.stroke();
+            }
+            
+            // Draw axis labels
+            graphCtx.fillStyle = '#374151';
+            graphCtx.font = '12px Inter';
+            for (let x = Math.ceil(xMin); x <= xMax; x++) {
+                if (x !== 0) {
+                    graphCtx.fillText(x.toString(), toPixelX(x) - 4, toPixelY(0) + 14);
+                }
+            }
+            for (let y = Math.ceil(yMin); y <= yMax; y++) {
+                if (y !== 0) {
+                    graphCtx.fillText(y.toString(), toPixelX(0) + 4, toPixelY(y) + 4);
+                }
+            }
+            
+            // Draw all graph elements
+            graphElements.forEach(el => {
+                graphCtx.strokeStyle = el.color;
+                graphCtx.fillStyle = el.color;
+                graphCtx.lineWidth = 3;
+                
+                if (el.type === 'line') {
+                    const k = el.params.k;
+                    const m = el.params.m;
+                    
+                    graphCtx.beginPath();
+                    graphCtx.moveTo(toPixelX(xMin), toPixelY(k * xMin + m));
+                    graphCtx.lineTo(toPixelX(xMax), toPixelY(k * xMax + m));
+                    graphCtx.stroke();
+                    
+                } else if (el.type === 'parabola') {
+                    const a = el.params.a;
+                    const b = el.params.b;
+                    const c = el.params.c;
+                    
+                    graphCtx.beginPath();
+                    let first = true;
+                    for (let px = 0; px <= width; px += 2) {
+                        const x = xMin + (px / width) * (xMax - xMin);
+                        const y = a * x * x + b * x + c;
+                        
+                        if (first) {
+                            graphCtx.moveTo(px, toPixelY(y));
+                            first = false;
+                        } else {
+                            graphCtx.lineTo(px, toPixelY(y));
+                        }
+                    }
+                    graphCtx.stroke();
+                    
+                } else if (el.type === 'points') {
+                    const pointsStr = el.params.points;
+                    const pointMatches = pointsStr.match(/\(([^)]+)\)/g) || [];
+                    
+                    pointMatches.forEach(p => {
+                        const coords = p.replace(/[()]/g, '').split(',').map(n => parseFloat(n.trim()));
+                        if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                            graphCtx.beginPath();
+                            graphCtx.arc(toPixelX(coords[0]), toPixelY(coords[1]), 6, 0, Math.PI * 2);
+                            graphCtx.fill();
+                        }
+                    });
+                }
+            });
+        };
+
+        window.applyQuickQuestion = function() {
+            const type = document.getElementById('graphQuickQuestion').value;
+            const questionEl = document.getElementById('graphQuestion');
+            const scaffoldEl = document.getElementById('graphScaffolding');
+            const solutionEl = document.getElementById('graphSolution');
+            
+            if (type === 'f(x)') {
+                questionEl.value = 'Avläs f(2) i grafen ovan.';
+                scaffoldEl.value = '1. Hitta x=2 på x-axeln\n2. Gå uppåt/nedåt tills du träffar grafen\n3. Avläs y-värdet';
+                solutionEl.value = '1. Vi hittar x=2 på x-axeln\n2. Vi följer linjen uppåt/nedåt till grafen\n3. Vi avläser y-värdet';
+            } else if (type === 'k') {
+                questionEl.value = 'Bestäm linjens lutning k.';
+                scaffoldEl.value = '1. Välj två punkter på linjen\n2. Använd formeln k = Δy / Δx\n3. Räkna ut hur mycket y ändras när x ökar med 1';
+                solutionEl.value = '1. Vi väljer två punkter, t.ex. (0, m) och (1, m+k)\n2. k = (y2 - y1) / (x2 - x1)\n3. Lutningen är k = ...';
+            } else if (type === 'm') {
+                questionEl.value = 'Bestäm linjens m-värde (y-intercept).';
+                scaffoldEl.value = '1. Hitta där linjen skär y-axeln\n2. Avläs y-värdet vid x=0';
+                solutionEl.value = '1. Vi ser var linjen korsar y-axeln\n2. Vid x=0 är y = m\n3. Alltså är m = ...';
+            } else if (type === 'zero') {
+                questionEl.value = 'Bestäm grafens nollställen (där y=0).';
+                scaffoldEl.value = '1. Hitta där grafen korsar x-axeln\n2. Avläs x-värdena vid dessa punkter';
+                solutionEl.value = '1. Vi ser var grafen korsar x-axeln\n2. Det sker vid x = ...\n3. Nollställena är alltså x = ...';
+            } else if (type === 'vertex') {
+                questionEl.value = 'Bestäm parabelns vertex (toppunkt/bottenläge).';
+                scaffoldEl.value = '1. Hitta parabelns högsta eller lägsta punkt\n2. Avläs x- och y-koordinaterna';
+                solutionEl.value = '1. Vi identifierar parabelns extrempunkt\n2. Den ligger vid x = ..., y = ...\n3. Vertex är alltså (x, y)';
+            }
+        };
+
+        window.previewGraphTask = function() {
+            const question = document.getElementById('graphQuestion').value;
+            const scaffolding = document.getElementById('graphScaffolding').value;
+            const solution = document.getElementById('graphSolution').value;
+            const answer = document.getElementById('graphAnswer').value;
+            
+            if (!question || !answer) {
+                document.getElementById('graphPreview').innerHTML = '<p class="text-red-500 text-center py-4">Fyll i fråga och svar!</p>';
+                return;
+            }
+            
+            const preview = document.getElementById('graphPreview');
+            preview.innerHTML = '';
+            
+            // Add graph image
+            const imgDiv = document.createElement('div');
+            imgDiv.className = 'mb-4 flex justify-center';
+            const img = document.createElement('img');
+            img.src = graphCanvas.toDataURL('image/png');
+            img.className = 'max-w-full rounded-lg border border-gray-200';
+            img.style.maxHeight = '200px';
+            imgDiv.appendChild(img);
+            preview.appendChild(imgDiv);
+            
+            // Add question
+            const qDiv = document.createElement('div');
+            qDiv.className = 'problem-text-block';
+            qDiv.innerHTML = formatInlineMath(question);
+            preview.appendChild(qDiv);
+            
+            // Add scaffolding preview
+            if (scaffolding.trim()) {
+                const scaffoldContainer = document.createElement('div');
+                scaffoldContainer.className = 'bg-amber-50 rounded-xl p-4 mt-4 border border-amber-200';
+                scaffoldContainer.innerHTML = '<div class="text-amber-700 font-bold mb-2">🪜 Scaffolding</div>';
+                
+                scaffolding.split('\n').filter(l => l.trim()).forEach((line, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'scaffold-block';
+                    const content = line.replace(/^\d+\.\s*/, '');
+                    div.innerHTML = `<span class="scaffold-number">${i+1}.</span><span>${formatInlineMath(content)}</span>`;
+                    scaffoldContainer.appendChild(div);
+                });
+                
+                preview.appendChild(scaffoldContainer);
+            }
+            
+            // Add solution preview
+            if (solution.trim()) {
+                const solContainer = document.createElement('div');
+                solContainer.className = 'bg-green-50 rounded-xl p-4 mt-4 border border-green-200';
+                solContainer.innerHTML = '<div class="text-green-700 font-bold mb-2">💡 Lösning</div>';
+                
+                solution.split('\n').filter(l => l.trim()).forEach((line, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'step-block';
+                    const content = line.replace(/^\d+\.\s*/, '');
+                    div.innerHTML = `<span class="step-number">${i+1}.</span><span>${formatInlineMath(content)}</span>`;
+                    solContainer.appendChild(div);
+                });
+                
+                preview.appendChild(solContainer);
+            }
+            
+            // Add answer
+            const answerDiv = document.createElement('div');
+            answerDiv.className = 'mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-200';
+            answerDiv.innerHTML = `<span class="font-bold text-indigo-700">✅ Svar:</span> <span class="text-indigo-900">${formatInlineMath('$' + answer + '$')}</span>`;
+            preview.appendChild(answerDiv);
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([preview]);
+            }
+        };
+
+        window.saveGraphTask = async function() {
+            const question = document.getElementById('graphQuestion').value.trim();
+            const scaffolding = document.getElementById('graphScaffolding').value.trim();
+            const solution = document.getElementById('graphSolution').value.trim();
+            const answer = document.getElementById('graphAnswer').value.trim();
+            
+            if (!question || !answer) {
+                showStatus('graphSaveStatus', '❌ Fyll i fråga och svar!', 'red');
+                return;
+            }
+            
+            // Convert canvas to base64 image
+            const graphImage = graphCanvas.toDataURL('image/png');
+            
+            // Build task object
+            const task = {
+                question: [
+                    { type: 'image', value: graphImage },
+                    { type: 'text', value: question }
+                ],
+                scaffolding: scaffolding.split('\n').filter(l => l.trim()).map(line => ({
+                    type: 'scaffold',
+                    value: line.replace(/^\d+\.\s*/, '')
+                })),
+                explanation: solution.split('\n').filter(l => l.trim()).map(line => ({
+                    type: 'step',
+                    value: line.replace(/^\d+\.\s*/, '')
+                })),
+                answer: answer
+            };
+            
+            try {
+                showStatus('graphSaveStatus', '⏳ Sparar...', 'blue');
+                await saveTaskToFirebase(task);
+                showStatus('graphSaveStatus', '✅ Graf-uppgift sparad!', 'green');
+                
+                // Clear form
+                document.getElementById('graphQuestion').value = '';
+                document.getElementById('graphScaffolding').value = '';
+                document.getElementById('graphSolution').value = '';
+                document.getElementById('graphAnswer').value = '';
+                document.getElementById('graphQuickQuestion').value = '';
+                document.getElementById('graphPreview').innerHTML = '<p class="text-gray-400 text-center italic py-4">Uppgift sparad! Skapa en ny...</p>';
+                
+            } catch (e) {
+                showStatus('graphSaveStatus', '❌ Fel: ' + e.message, 'red');
+            }
+        };
+
+        // Parse bulk input
+        window.parseBulkInput = function() {
+            const raw = document.getElementById('bulkInput').value.trim();
+            if (!raw) {
+                showStatus('parseStatus', '❌ Klistra in uppgifter först!', 'red');
+                return;
+            }
+
+            // Split by --- separator
+            const rawTasks = raw.split(/\n---+\n|\n---+$|^---+\n/).filter(t => t.trim());
+            
+            parsedTasks = [];
+            
+            for (const rawTask of rawTasks) {
+                const task = parseTask(rawTask);
+                if (task) {
+                    task.status = 'pending'; // pending, saved, skipped
+                    parsedTasks.push(task);
+                }
+            }
+
+            if (parsedTasks.length === 0) {
+                showStatus('parseStatus', '❌ Kunde inte tolka några uppgifter. Kontrollera formatet!', 'red');
+                return;
+            }
+
+            showStatus('parseStatus', `✅ Tolkade ${parsedTasks.length} uppgifter!`, 'green');
+            
+            // Show navigation and first task
+            document.getElementById('taskCounter').classList.remove('hidden');
+            document.getElementById('taskNavigation').classList.remove('hidden');
+            document.getElementById('taskActions').classList.remove('hidden');
+            document.getElementById('taskListOverview').classList.remove('hidden');
+            
+            currentTaskIndex = 0;
+            updateTaskDots();
+            renderCurrentTask();
+            renderTasksList();
+        };
+
+        function parseTask(raw) {
+            const lines = raw.trim().split('\n');
+            const task = {
+                question: [],
+                scaffolding: [],
+                explanation: [],
+                answer: ''
+            };
+
+            let section = 'question';
+            let sectionContent = [];
+
+            for (let line of lines) {
+                const trimmed = line.trim();
+                
+                // Check for section headers
+                if (/^UPPGIFT:/i.test(trimmed)) {
+                    section = 'question';
+                    const content = trimmed.replace(/^UPPGIFT:\s*/i, '').trim();
+                    if (content) sectionContent.push(content);
+                    continue;
+                }
+                if (/^SCAFFOLDING:/i.test(trimmed)) {
+                    processSectionContent(task, section, sectionContent);
+                    section = 'scaffolding';
+                    sectionContent = [];
+                    continue;
+                }
+                if (/^LÖSNING:/i.test(trimmed) || /^LOSNING:/i.test(trimmed)) {
+                    processSectionContent(task, section, sectionContent);
+                    section = 'explanation';
+                    sectionContent = [];
+                    continue;
+                }
+                if (/^SVAR:/i.test(trimmed)) {
+                    processSectionContent(task, section, sectionContent);
+                    section = 'answer';
+                    const answer = trimmed.replace(/^SVAR:\s*/i, '').trim();
+                    if (answer) task.answer = cleanMathForAnswer(answer);
+                    continue;
+                }
+
+                // Collect content
+                if (trimmed) {
+                    if (section === 'answer') {
+                        task.answer = cleanMathForAnswer(trimmed);
+                    } else {
+                        sectionContent.push(trimmed);
+                    }
+                }
+            }
+
+            // Process remaining content
+            processSectionContent(task, section, sectionContent);
+
+            // Validate task has minimum required content
+            if (task.question.length === 0 || !task.answer) {
+                return null;
+            }
+
+            return task;
+        }
+
+        function processSectionContent(task, section, content) {
+            if (content.length === 0) return;
+
+            for (const line of content) {
+                const block = lineToBlock(line, section);
+                if (block) {
+                    if (section === 'question') task.question.push(block);
+                    else if (section === 'scaffolding') task.scaffolding.push(block);
+                    else if (section === 'explanation') task.explanation.push(block);
+                }
+            }
+        }
+
+        function lineToBlock(line, section) {
+            const trimmed = line.trim();
+            if (!trimmed) return null;
+
+            // Check for numbered step (1. 2. 3. etc.)
+            const stepMatch = trimmed.match(/^(\d+)\.\s*(.+)/);
+            if (stepMatch) {
+                const content = cleanMathText(stepMatch[2]);
+                if (section === 'scaffolding') {
+                    return { type: 'scaffold', value: content };
+                } else {
+                    return { type: 'step', value: content };
+                }
+            }
+
+            // Check for centered math ($$...$$)
+            if (trimmed.startsWith('$$') && trimmed.endsWith('$$')) {
+                return { type: 'math', value: trimmed.slice(2, -2).trim() };
+            }
+
+            // Check if line is primarily math
+            if (isPrimarilyMath(trimmed)) {
+                let mathContent = trimmed;
+                // Remove single $ wrappers if present
+                if (mathContent.startsWith('$') && mathContent.endsWith('$') && !mathContent.startsWith('$$')) {
+                    mathContent = mathContent.slice(1, -1);
+                }
+                return { type: 'math', value: mathContent };
+            }
+
+            // Default to text - keep inline math intact for rendering
+            return { type: 'text', value: trimmed };
+        }
+
+        // Clean up stray $ signs and ensure proper LaTeX formatting
+        function cleanMathText(text) {
+            if (!text) return '';
+            
+            // Replace stray $ that are not part of proper inline math
+            // Proper inline math: $...$  (content between $)
+            // Stray $: single $ not followed by content and closing $
+            
+            // First, temporarily protect proper inline math
+            const mathSegments = [];
+            let cleaned = text.replace(/\$([^$]+)\$/g, (match, inner) => {
+                const idx = mathSegments.length;
+                mathSegments.push(match);
+                return `__MATH_${idx}__`;
+            });
+            
+            // Remove any remaining stray $ signs
+            cleaned = cleaned.replace(/\$/g, '');
+            
+            // Restore protected math
+            cleaned = cleaned.replace(/__MATH_(\d+)__/g, (match, idx) => mathSegments[parseInt(idx)]);
+            
+            return cleaned;
+        }
+
+        function isPrimarilyMath(text) {
+            // Only treat as centered math if the ENTIRE line is wrapped in $...$ with no text outside
+            const isFullyWrappedMath = text.startsWith('$') && text.endsWith('$') && (text.match(/\$/g) || []).length === 2;
+            if (!isFullyWrappedMath) return false;
+            
+            // Check that there's no regular text before/after the $...$ wrapper
+            const unwrapped = text.slice(1, -1).trim();
+            // If it contains letters followed by : or similar, it's not pure math
+            return !(/^[A-Za-zÅÄÖåäö]/.test(text) || text.includes(':'));
+        }
+
+        function cleanMathForAnswer(text) {
+            // Remove $ wrappers from answer
+            let cleaned = text.trim();
+            if (cleaned.startsWith('$') && cleaned.endsWith('$')) {
+                cleaned = cleaned.slice(1, -1).trim();
+            }
+            return cleaned;
+        }
+
+        // Render current task preview
+        function renderCurrentTask() {
+            if (parsedTasks.length === 0) return;
+
+            const task = parsedTasks[currentTaskIndex];
+            const preview = document.getElementById('bulkPreview');
+            preview.innerHTML = '';
+
+            // Render question
+            const qDiv = document.createElement('div');
+            qDiv.className = 'mb-6';
+            renderBlocks(qDiv, task.question);
+            preview.appendChild(qDiv);
+
+            // Render scaffolding if exists
+            if (task.scaffolding && task.scaffolding.length > 0) {
+                const scaffoldContainer = document.createElement('div');
+                scaffoldContainer.className = 'bg-amber-50 rounded-xl p-4 mt-4 border border-amber-200';
+                
+                const scaffoldTitle = document.createElement('div');
+                scaffoldTitle.className = 'flex items-center gap-2 text-amber-700 font-bold mb-3';
+                scaffoldTitle.innerHTML = '🪜 Scaffolding';
+                scaffoldContainer.appendChild(scaffoldTitle);
+
+                let count = 0;
+                task.scaffolding.forEach(block => {
+                    count++;
+                    const div = document.createElement('div');
+                    div.className = 'scaffold-block';
+                    div.innerHTML = `<span class="scaffold-number">${count}.</span><span>${formatInlineMath(block.value)}</span>`;
+                    scaffoldContainer.appendChild(div);
+                });
+
+                preview.appendChild(scaffoldContainer);
+            }
+
+            // Render explanation
+            if (task.explanation && task.explanation.length > 0) {
+                const expContainer = document.createElement('div');
+                expContainer.className = 'bg-green-50 rounded-xl p-4 mt-4 border border-green-200';
+                
+                const expTitle = document.createElement('div');
+                expTitle.className = 'flex items-center gap-2 text-green-700 font-bold mb-3';
+                expTitle.innerHTML = '💡 Lösning';
+                expContainer.appendChild(expTitle);
+
+                renderBlocks(expContainer, task.explanation);
+                preview.appendChild(expContainer);
+            }
+
+            // Render answer
+            const answerDiv = document.createElement('div');
+            answerDiv.className = 'mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-200';
+            answerDiv.innerHTML = `<span class="font-bold text-indigo-700">✅ Svar:</span> <span class="text-indigo-900">${formatInlineMath('$' + task.answer + '$')}</span>`;
+            preview.appendChild(answerDiv);
+
+            // Status indicator
+            if (task.status !== 'pending') {
+                const statusDiv = document.createElement('div');
+                statusDiv.className = `mt-4 p-3 rounded-xl text-center font-bold ${task.status === 'saved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`;
+                statusDiv.textContent = task.status === 'saved' ? '✅ Sparad!' : '⏭️ Överhoppad';
+                preview.appendChild(statusDiv);
+            }
+
+            // Update counter
+            document.getElementById('taskCounter').textContent = `Uppgift ${currentTaskIndex + 1} av ${parsedTasks.length}`;
+
+            // Typeset MathJax
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([preview]);
+            }
+
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentTaskIndex === 0;
+            document.getElementById('nextBtn').disabled = currentTaskIndex >= parsedTasks.length - 1;
+        }
+
+        function renderBlocks(container, blocks) {
+            if (!blocks) return;
+            let stepCount = 0;
+
+            blocks.forEach(block => {
+                if (!block.value) return;
+                const div = document.createElement('div');
+
+                if (block.type === 'text') {
+                    div.className = 'problem-text-block';
+                    div.innerHTML = formatInlineMath(block.value);
+                } else if (block.type === 'math') {
+                    div.className = 'problem-math-block';
+                    div.innerHTML = `$$${block.value}$$`;
+                } else if (block.type === 'step') {
+                    stepCount++;
+                    div.className = 'step-block';
+                    div.innerHTML = `<span class="step-number">${stepCount}.</span><span>${formatInlineMath(block.value)}</span>`;
+                }
+
+                container.appendChild(div);
+            });
+        }
+
+        function formatInlineMath(text) {
+            if (!text) return '';
+            // Clean stray $ signs first, then convert proper $...$ to MathJax inline format
+            let cleaned = text;
+            
+            // Protect proper inline math $...$
+            const mathSegments = [];
+            cleaned = cleaned.replace(/\$([^$]+)\$/g, (match, inner) => {
+                const idx = mathSegments.length;
+                mathSegments.push(inner);
+                return `__MATH_${idx}__`;
+            });
+            
+            // Remove any stray $ signs
+            cleaned = cleaned.replace(/\$/g, '');
+            
+            // Restore math with MathJax inline format \(...\)
+            cleaned = cleaned.replace(/__MATH_(\d+)__/g, (match, idx) => `\\(${mathSegments[parseInt(idx)]}\\)`);
+            
+            return cleaned;
+        }
+
+        // Task navigation
+        window.prevTask = function() {
+            if (currentTaskIndex > 0) {
+                currentTaskIndex--;
+                renderCurrentTask();
+                updateTaskDots();
+            }
+        };
+
+        window.nextTask = function() {
+            if (currentTaskIndex < parsedTasks.length - 1) {
+                currentTaskIndex++;
+                renderCurrentTask();
+                updateTaskDots();
+            }
+        };
+
+        function updateTaskDots() {
+            const dotsContainer = document.getElementById('taskDots');
+            dotsContainer.innerHTML = '';
+
+            parsedTasks.forEach((task, idx) => {
+                const dot = document.createElement('button');
+                dot.className = `w-3 h-3 rounded-full transition-all ${
+                    idx === currentTaskIndex ? 'bg-indigo-600 scale-125' :
+                    task.status === 'saved' ? 'bg-green-500' :
+                    task.status === 'skipped' ? 'bg-amber-400' : 'bg-gray-300'
+                }`;
+                dot.onclick = () => {
+                    currentTaskIndex = idx;
+                    renderCurrentTask();
+                    updateTaskDots();
+                };
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function renderTasksList() {
+            const list = document.getElementById('parsedTasksList');
+            list.innerHTML = '';
+
+            parsedTasks.forEach((task, idx) => {
+                const preview = task.question.map(b => b.value).join(' ').substring(0, 60);
+                const div = document.createElement('div');
+                div.className = `task-card cursor-pointer ${
+                    idx === currentTaskIndex ? 'current' :
+                    task.status === 'saved' ? 'saved' :
+                    task.status === 'skipped' ? 'skipped' : ''
+                }`;
+                div.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium text-gray-700">#${idx + 1}</span>
+                        <span class="text-xs ${
+                            task.status === 'saved' ? 'text-green-600' :
+                            task.status === 'skipped' ? 'text-amber-600' : 'text-gray-400'
+                        }">${
+                            task.status === 'saved' ? '✅ Sparad' :
+                            task.status === 'skipped' ? '⏭️ Överhoppad' : '○ Väntande'
+                        }</span>
+                    </div>
+                    <p class="text-sm text-gray-600 truncate mt-1">${preview}...</p>
+                `;
+                div.onclick = () => {
+                    currentTaskIndex = idx;
+                    renderCurrentTask();
+                    updateTaskDots();
+                    renderTasksList();
+                };
+                list.appendChild(div);
+            });
+        }
+
+        // Save/skip actions
+        window.saveCurrentTask = async function() {
+            const task = parsedTasks[currentTaskIndex];
+            if (task.status === 'saved') {
+                showStatus('saveStatus', 'Redan sparad!', 'amber');
+                return;
+            }
+
+            try {
+                showStatus('saveStatus', '⏳ Sparar...', 'blue');
+                await saveTaskToFirebase(task);
+                task.status = 'saved';
+                showStatus('saveStatus', '✅ Sparad!', 'green');
+                renderCurrentTask();
+                updateTaskDots();
+                renderTasksList();
+                
+                // Auto-advance to next unsaved task
+                const nextUnsaved = parsedTasks.findIndex((t, i) => i > currentTaskIndex && t.status === 'pending');
+                if (nextUnsaved !== -1) {
+                    setTimeout(() => {
+                        currentTaskIndex = nextUnsaved;
+                        renderCurrentTask();
+                        updateTaskDots();
+                    }, 500);
+                }
+            } catch (e) {
+                showStatus('saveStatus', '❌ Fel: ' + e.message, 'red');
+            }
+        };
+
+        window.skipCurrentTask = function() {
+            parsedTasks[currentTaskIndex].status = 'skipped';
+            renderCurrentTask();
+            updateTaskDots();
+            renderTasksList();
+
+            // Auto-advance
+            if (currentTaskIndex < parsedTasks.length - 1) {
+                currentTaskIndex++;
+                renderCurrentTask();
+                updateTaskDots();
+            }
+        };
+
+        window.saveAllTasks = async function() {
+            const pending = parsedTasks.filter(t => t.status === 'pending');
+            if (pending.length === 0) {
+                showStatus('saveStatus', 'Alla uppgifter är redan sparade!', 'amber');
+                return;
+            }
+
+            showStatus('saveStatus', `⏳ Sparar ${pending.length} uppgifter...`, 'blue');
+
+            let saved = 0;
+            for (const task of parsedTasks) {
+                if (task.status === 'pending') {
+                    try {
+                        await saveTaskToFirebase(task);
+                        task.status = 'saved';
+                        saved++;
+                    } catch (e) {
+                        console.error('Failed to save task:', e);
+                    }
+                }
+            }
+
+            showStatus('saveStatus', `✅ ${saved} uppgifter sparade!`, 'green');
+            updateTaskDots();
+            renderTasksList();
+            renderCurrentTask();
+            loadTasks();
+        };
+
+        async function saveTaskToFirebase(task) {
+            const topic = document.getElementById('topicSelect').value;
+            const partId = document.getElementById('chapterSelect').value;
+            const path = getFirebasePath(topic, partId);
+            
+            // Get part info for metadata
+            const structure = getCurrentStructure()[topic];
+            const partIndex = structure?.parts?.findIndex(p => p.id === partId) ?? 0;
+            const partName = structure?.parts?.[partIndex]?.name || '';
+
+            const taskData = {
+                question_sv: task.question,
+                explanation_sv: task.explanation.length > 0 ? task.explanation : null,
+                scaffolding_sv: task.scaffolding.length > 0 ? task.scaffolding : null,
+                answer: task.answer,
+                answerType: 'text',
+                level: document.getElementById('levelSelect').value,
+                campaignLevel: partIndex + 1,
+                partId: partId,
+                partName: partName,
+                topic: topic,
+                createdAt: new Date().toISOString()
+            };
+
+            await addDoc(collection(db, path), taskData);
+        }
+
+        // Clear
+        window.clearBulkInput = function() {
+            document.getElementById('bulkInput').value = '';
+            parsedTasks = [];
+            currentTaskIndex = 0;
+            document.getElementById('bulkPreview').innerHTML = '<p class="text-gray-400 text-center italic py-8">Klistra in uppgifter och klicka "Tolka uppgifter" för att förhandsgranska...</p>';
+            document.getElementById('taskCounter').classList.add('hidden');
+            document.getElementById('taskNavigation').classList.add('hidden');
+            document.getElementById('taskActions').classList.add('hidden');
+            document.getElementById('taskListOverview').classList.add('hidden');
+            document.getElementById('parseStatus').textContent = '';
+        };
+
+        // Copy example
+        window.copyExample = function() {
+            const example = document.getElementById('exampleCode').textContent;
+            navigator.clipboard.writeText(example);
+            alert('Exemplet kopierat! Klistra in i ChatGPT.');
+        };
+
+        // Status helper
+        function showStatus(elementId, text, color) {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = `text-center font-medium text-${color}-600`;
+        }
+
+        // Load existing tasks
+        window.loadTasks = async function() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '<p class="text-gray-400 text-center py-8">Laddar...</p>';
+
+            try {
+                const topic = document.getElementById('topicSelect').value;
+                const partId = document.getElementById('chapterSelect').value;
+                const path = getFirebasePath(topic, partId);
+                
+                const snap = await getDocs(collection(db, path));
+                
+                allTasks = [];
+                snap.forEach(docSnap => {
+                    allTasks.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                filterTasks();
+            } catch (e) {
+                list.innerHTML = `<p class="text-red-500 text-center py-8">Fel: ${e.message}</p>`;
+            }
+        };
+
+        window.filterTasks = function() {
+            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let filtered = allTasks.filter(task => {
+                if (activeFilters.chapter !== 'all' && task.campaignLevel?.toString() !== activeFilters.chapter) return false;
+                
+                if (searchTerm) {
+                    const preview = getPreviewText(task.question_sv).toLowerCase();
+                    const answer = (task.answer || '').toLowerCase();
+                    if (!preview.includes(searchTerm) && !answer.includes(searchTerm)) return false;
+                }
+                
+                return true;
+            });
+
+            renderTaskList(filtered);
+        };
+
+        window.toggleFilter = function(btn) {
+            const filter = btn.dataset.filter;
+            const value = btn.dataset.value;
+            
+            document.querySelectorAll(`[data-filter="${filter}"]`).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            activeFilters[filter] = value;
+            filterTasks();
+        };
+
+        function renderTaskList(tasks) {
+            const list = document.getElementById('taskList');
+            const stats = document.getElementById('taskStats');
+            
+            stats.textContent = `Visar ${tasks.length} av ${allTasks.length} uppgifter`;
+            
+            if (tasks.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 text-center py-8">Inga uppgifter hittades.</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            tasks.forEach(task => {
+                const hasScaffolding = task.scaffolding_sv && task.scaffolding_sv.length > 0;
+                
+                const div = document.createElement('div');
+                div.className = 'task-card';
+                
+                // Create preview with proper math rendering
+                const previewHtml = getPreviewHtml(task.question_sv);
+                const answerHtml = formatAnswerHtml(task.answer);
+                
+                div.innerHTML = `
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap gap-2 mb-2">
+                                <span class="inline-block bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded">
+                                    ${task.level || 'Åk 9'}
+                                </span>
+                                <span class="inline-block bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded">
+                                    Del ${task.campaignLevel || '?'}
+                                </span>
+                                ${hasScaffolding ? '<span class="inline-block bg-amber-100 text-amber-700 text-xs font-bold px-2 py-1 rounded">🪜</span>' : ''}
+                            </div>
+                            <div class="text-gray-700 task-question-preview">${previewHtml}</div>
+                            <div class="text-sm text-gray-500 mt-1">Svar: <strong class="task-answer-preview">${answerHtml}</strong></div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="editTask('${task.id}')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-2 rounded-lg text-sm transition">
+                                ✏️ Redigera
+                            </button>
+                            <button onclick="deleteTask('${task.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-lg text-sm transition">
+                                🗑️ Ta bort
+                            </button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            
+            // Typeset MathJax for all task previews
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([list]).catch(err => console.log('MathJax error:', err));
+            }
+        }
+        
+        // Get preview HTML with proper math formatting
+        function getPreviewHtml(content) {
+            if (!content) return '???';
+            if (typeof content === 'string') {
+                return formatInlineMath(content.substring(0, 100)) + (content.length > 100 ? '...' : '');
+            }
+            if (Array.isArray(content)) {
+                // Get first text or math block for preview
+                const text = content.map(b => {
+                    if (b.type === 'math') return `$${b.value}$`;
+                    return b.value || '';
+                }).join(' ');
+                const truncated = text.substring(0, 100);
+                return formatInlineMath(truncated) + (text.length > 100 ? '...' : '');
+            }
+            return '...';
+        }
+        
+        // Format answer HTML with MathJax
+        function formatAnswerHtml(answer) {
+            if (!answer) return '–';
+            let ans = answer.toString().trim();
+            
+            // Clean up $ signs at start/end
+            ans = ans.replace(/^\$+/, '').replace(/\$+$/, '');
+            
+            // Check if it has alternatives (eller/or)
+            if (ans.toLowerCase().includes(' eller ') || ans.toLowerCase().includes(' or ')) {
+                const parts = ans.split(/\s+eller\s+|\s+or\s+/i);
+                const formatted = parts.map(p => {
+                    p = p.trim().replace(/^\$+/, '').replace(/\$+$/, '');
+                    if (p.includes('\\') || p.includes('^') || p.includes('/')) {
+                        return `\\(${p}\\)`;
+                    }
+                    return p;
+                });
+                return formatted.join(' <span style="color:#94a3b8;">eller</span> ');
+            }
+            
+            // If it contains LaTeX, wrap it
+            if (ans.includes('\\') || ans.includes('^') || ans.includes('/')) {
+                return `\\(${ans}\\)`;
+            }
+            
+            return ans;
+        }
+
+        function getPreviewText(content) {
+            if (!content) return '???';
+            if (typeof content === 'string') return content.substring(0, 80);
+            if (Array.isArray(content)) {
+                return content.map(b => b.value || '').join(' ').substring(0, 80);
+            }
+            return '...';
+        }
+
+        window.deleteTask = async function(id) {
+            if (!confirm('Radera denna uppgift?')) return;
+            
+            try {
+                const topic = document.getElementById('topicSelect').value;
+                const partId = document.getElementById('chapterSelect').value;
+                const path = getFirebasePath(topic, partId);
+                await deleteDoc(doc(db, path, id));
+                loadTasks();
+            } catch (e) {
+                alert('Fel: ' + e.message);
+            }
+        };
+
+        // ============ EDIT TASK ============
+        let editingTaskId = null;
+
+        window.editTask = function(id) {
+            const task = allTasks.find(t => t.id === id);
+            if (!task) return;
+
+            editingTaskId = id;
+            
+            // Store the topic and partId context for saving
+            window.editingTopic = document.getElementById('topicSelect').value;
+            window.editingPartId = document.getElementById('chapterSelect').value;
+            
+            // Create edit modal
+            const modal = document.createElement('div');
+            modal.id = 'editModal';
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-2xl">
+                        <h2 class="text-2xl font-bold">✏️ Redigera uppgift</h2>
+                        <p class="text-indigo-100 text-sm">ID: ${id}</p>
+                    </div>
+                    
+                    <div class="p-6 space-y-6">
+                        <!-- Question -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">📝 Uppgift</label>
+                            <textarea id="editQuestion" class="w-full p-4 border-2 border-gray-200 rounded-xl h-32 font-mono text-sm">${blocksToText(task.question_sv)}</textarea>
+                        </div>
+                        
+                        <!-- Scaffolding -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">🪜 Scaffolding (en steg per rad, börja med nummer)</label>
+                            <textarea id="editScaffolding" class="w-full p-4 border-2 border-gray-200 rounded-xl h-24 font-mono text-sm">${blocksToText(task.scaffolding_sv)}</textarea>
+                        </div>
+                        
+                        <!-- Solution -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">💡 Lösning (en steg per rad, börja med nummer)</label>
+                            <textarea id="editSolution" class="w-full p-4 border-2 border-gray-200 rounded-xl h-32 font-mono text-sm">${blocksToText(task.explanation_sv)}</textarea>
+                        </div>
+                        
+                        <!-- Answer -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">✅ Svar</label>
+                            <input type="text" id="editAnswer" class="w-full p-4 border-2 border-gray-200 rounded-xl font-mono" value="${task.answer || ''}">
+                        </div>
+                        
+                        <!-- Preview -->
+                        <div>
+                            <button onclick="previewEditedTask()" class="text-indigo-600 font-bold mb-3 hover:underline">👁️ Förhandsgranska</button>
+                            <div id="editPreview" class="preview-container border-2 border-gray-200 hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-gray-50 rounded-b-2xl flex gap-3 justify-end">
+                        <button onclick="closeEditModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-bold transition">
+                            ❌ Avbryt
+                        </button>
+                        <button onclick="saveEditedTask()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-lg">
+                            💾 Spara ändringar
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+
+        function blocksToText(blocks) {
+            if (!blocks) return '';
+            if (typeof blocks === 'string') return blocks;
+            if (!Array.isArray(blocks)) return '';
+            
+            return blocks.map(b => {
+                if (b.type === 'step' || b.type === 'scaffold') {
+                    return b.value;
+                } else if (b.type === 'math') {
+                    return `$$${b.value}$$`;
+                }
+                return b.value || '';
+            }).join('\n');
+        }
+
+        // Helper: parse plain text (from edit textarea) into blocks for preview
+        function parseTextToBlocks(text) {
+            if (!text || !text.trim()) return [];
+            const lines = text.split('\n').filter(l => l.trim());
+            const blocks = [];
+            
+            for (const line of lines) {
+                const trimmed = line.trim();
+                
+                // Centered math $$...$$
+                if (trimmed.startsWith('$$') && trimmed.endsWith('$$')) {
+                    blocks.push({ type: 'math', value: trimmed.slice(2, -2).trim() });
+                    continue;
+                }
+                
+                // Otherwise treat as text (can contain inline $...$)
+                blocks.push({ type: 'text', value: trimmed });
+            }
+            
+            return blocks;
+        }
+        
+        window.previewEditedTask = function() {
+            const preview = document.getElementById('editPreview');
+            if (!preview) {
+                console.error('Preview container not found');
+                return;
+            }
+
+            try {
+                preview.classList.remove('hidden');
+                preview.innerHTML = '';
+
+                const question = document.getElementById('editQuestion')?.value || '';
+                const scaffolding = document.getElementById('editScaffolding')?.value || '';
+                const solution = document.getElementById('editSolution')?.value || '';
+                const answer = document.getElementById('editAnswer')?.value || '';
+
+                // Parse each section
+                const questionBlocks = parseTextToBlocks(question);
+                const scaffoldBlocks = parseScaffoldSteps(scaffolding);
+                const solutionBlocks = parseSolutionSteps(solution);
+
+                // Question section
+                const qDiv = document.createElement('div');
+                qDiv.innerHTML = '<h4 class="font-bold text-gray-800 mb-2">📝 Uppgift</h4>';
+                renderBlocks(qDiv, questionBlocks);
+                preview.appendChild(qDiv);
+
+                // Scaffolding section
+                if (scaffoldBlocks.length > 0) {
+                    const sDiv = document.createElement('div');
+                    sDiv.className = 'mt-4';
+                    sDiv.innerHTML = '<h4 class="font-bold text-amber-700 mb-2">🪜 Scaffolding</h4>';
+                    scaffoldBlocks.forEach((b, i) => {
+                        const step = document.createElement('div');
+                        step.className = 'scaffold-block';
+                        step.innerHTML = `<span class="scaffold-number">${i + 1}.</span><span>${formatInlineMath(b.value)}</span>`;
+                        sDiv.appendChild(step);
+                    });
+                    preview.appendChild(sDiv);
+                }
+
+                // Solution section
+                if (solutionBlocks.length > 0) {
+                    const solDiv = document.createElement('div');
+                    solDiv.className = 'mt-4';
+                    solDiv.innerHTML = '<h4 class="font-bold text-green-700 mb-2">💡 Lösning</h4>';
+                    solutionBlocks.forEach((b, i) => {
+                        const step = document.createElement('div');
+                        step.className = 'step-block';
+                        step.innerHTML = `<span class="step-number">${i + 1}.</span><span>${formatInlineMath(b.value)}</span>`;
+                        solDiv.appendChild(step);
+                    });
+                    preview.appendChild(solDiv);
+                }
+
+                // Answer section
+                const ansDiv = document.createElement('div');
+                ansDiv.className = 'mt-4 bg-green-50 border border-green-200 rounded-lg p-4';
+                ansDiv.innerHTML = `<span class="font-bold text-green-700">✅ Svar:</span> <span class="font-mono">${formatInlineMath(answer)}</span>`;
+                preview.appendChild(ansDiv);
+
+                // Typeset MathJax (after DOM updated)
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    requestAnimationFrame(() => {
+                        MathJax.typesetPromise([preview]).catch(err => console.log('MathJax error:', err));
+                    });
+                }
+            } catch (e) {
+                console.error('Preview error:', e);
+                preview.classList.remove('hidden');
+                preview.innerHTML = `<div class="p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">
+                    ❌ Förhandsgranskning kraschade: ${escapeHtml(e?.message || String(e))}
+                </div>`;
+            }
+        };
+
+        window.saveEditedTask = async function() {
+            // === NY STRATEGI: Skapa ny uppgift + ta bort gammal ===
+            // Detta kringgår problemet med updateDoc/setDoc som hänger sig
+            
+            if (!editingTaskId) {
+                alert('❌ Ingen uppgift vald att redigera');
+                return;
+            }
+
+            if (!window.firebaseReady) {
+                alert('⏳ Vänta tills statusen visar "Ansluten till Firebase ✓" innan du sparar.');
+                return;
+            }
+            
+            // Show saving state
+            const saveBtn = document.querySelector('#editModal button[onclick="saveEditedTask()"]');
+            const originalBtnHtml = saveBtn ? saveBtn.innerHTML : '💾 Spara ändringar';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '⏳ Sparar... (skapar ny)';
+            }
+            
+            const question = document.getElementById('editQuestion').value;
+            const scaffolding = document.getElementById('editScaffolding').value;
+            const solution = document.getElementById('editSolution').value;
+            const answer = document.getElementById('editAnswer').value;
+            
+            const questionBlocks = parseTextToBlocks(question);
+            const scaffoldBlocks = parseScaffoldSteps(scaffolding);
+            const solutionBlocks = parseSolutionSteps(solution);
+            
+            // Safety helper: never await a hanging network call forever
+            function withTimeout(promise, ms, label) {
+                let t;
+                const timeout = new Promise((_, reject) => {
+                    t = setTimeout(() => reject(new Error(`${label} tog för lång tid (>${Math.round(ms/1000)}s). Kontrollera uppkoppling.`)), ms);
+                });
+                return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
+            }
+
+            try {
+                // Get topic and partId from the stored editing context
+                const topic = window.editingTopic;
+                const partId = window.editingPartId;
+                
+                console.log('Edit context - topic:', topic, 'partId:', partId, 'oldTaskId:', editingTaskId);
+                
+                if (!topic || !partId) {
+                    throw new Error('Kunde inte hitta sökvägen. Försök stäng och öppna redigeringsmodalen igen.');
+                }
+                
+                const path = window.getFirebasePath(topic, partId);
+                console.log('Save path:', path);
+
+                // Check Firebase SDK is ready (use in-scope SDK functions first, fallback to window.*)
+                const _db = (typeof db !== 'undefined' && db) ? db : window.db;
+                const _addDoc = (typeof addDoc !== 'undefined' && addDoc) ? addDoc : window.addDoc;
+                const _deleteDoc = (typeof deleteDoc !== 'undefined' && deleteDoc) ? deleteDoc : window.deleteDoc;
+                const _collection = (typeof collection !== 'undefined' && collection) ? collection : window.collection;
+                const _doc = (typeof doc !== 'undefined' && doc) ? doc : window.doc;
+
+                if (!_db || !_addDoc || !_deleteDoc || !_collection || !_doc) {
+                    throw new Error('Firebase är inte initierat korrekt. Ladda om sidan och försök igen.');
+                }
+
+                // Find the original task to get its metadata
+                const originalTask = allTasks.find(t => t.id === editingTaskId);
+                if (!originalTask) {
+                    throw new Error('Kunde inte hitta originaluppgiften. Ladda om sidan och försök igen.');
+                }
+
+                // === STEG 1: Skapa ny uppgift med redigerat innehåll ===
+                const newTaskData = {
+                    question_sv: questionBlocks,
+                    answer: answer,
+                    scaffolding_sv: scaffoldBlocks.length > 0 ? scaffoldBlocks : null,
+                    explanation_sv: solutionBlocks.length > 0 ? solutionBlocks : null,
+                    // Preserve original metadata
+                    level: originalTask.level || document.getElementById('levelSelect').value,
+                    campaignLevel: originalTask.campaignLevel,
+                    partId: originalTask.partId || partId,
+                    partName: originalTask.partName || '',
+                    topic: originalTask.topic || topic,
+                    answerType: originalTask.answerType || 'text',
+                    // Timestamps
+                    createdAt: originalTask.createdAt || new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                console.log('Creating new task with data:', {
+                    path,
+                    hasQuestion: questionBlocks.length,
+                    hasScaffolding: scaffoldBlocks.length,
+                    hasSolution: solutionBlocks.length,
+                    answer
+                });
+
+                if (saveBtn) {
+                    saveBtn.innerHTML = '⏳ Skapar ny uppgift...';
+                }
+
+                // addDoc works fine - let's use it
+                const newDocRef = await withTimeout(
+                    _addDoc(_collection(_db, path), newTaskData),
+                    15000,
+                    'Skapa ny uppgift'
+                );
+                
+                console.log('New task created with ID:', newDocRef.id);
+
+                // === STEG 2: Ta bort gamla uppgiften ===
+                if (saveBtn) {
+                    saveBtn.innerHTML = '⏳ Tar bort gammal...';
+                }
+
+                const oldDocRef = _doc(_db, path, editingTaskId);
+                await withTimeout(
+                    _deleteDoc(oldDocRef),
+                    15000,
+                    'Ta bort gammal uppgift'
+                );
+                
+                console.log('Old task deleted:', editingTaskId);
+
+                // === KLAR ===
+                window.closeEditModal();
+                await loadTasks();
+                alert('✅ Uppgift uppdaterad!\n(Nytt ID: ' + newDocRef.id.slice(0, 8) + '...)');
+                
+            } catch (e) {
+                console.error('Save error:', e);
+                const topic = window.editingTopic;
+                const partId = window.editingPartId;
+                const path = (topic && partId && window.getFirebasePath) ? window.getFirebasePath(topic, partId) : '(okänd sökväg)';
+                alert('❌ Fel vid sparande:\n' +
+                      `- ${e.message}\n` +
+                      `- Sökväg: ${path}\n` +
+                      `- Gammalt ID: ${editingTaskId}`);
+                // Reset button
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalBtnHtml;
+                }
+            } finally {
+                // Safety: never leave the button stuck
+                const modalStillOpen = document.getElementById('editModal');
+                if (modalStillOpen && saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalBtnHtml;
+                }
+            }
+        };
+
+        window.closeEditModal = function() {
+            const modal = document.getElementById('editModal');
+            if (modal) modal.remove();
+            editingTaskId = null;
+        };
+
+        function parseScaffoldSteps(text) {
+            if (!text.trim()) return [];
+            const lines = text.split('\n').filter(l => l.trim());
+            return lines.map(line => {
+                const cleaned = line.replace(/^\d+[\.\)]\s*/, '').trim();
+                return { type: 'scaffold', value: cleaned };
+            });
+        }
+
+        function parseSolutionSteps(text) {
+            if (!text.trim()) return [];
+            const lines = text.split('\n').filter(l => l.trim());
+            return lines.map(line => {
+                const cleaned = line.replace(/^\d+[\.\)]\s*/, '').trim();
+                return { type: 'step', value: cleaned };
+            });
+        }
+
+        // ============ GENOMGÅNG EDITOR ============
+        
+        function updateGenomgangPath() {
+            const topic = document.getElementById('topicSelect').value;
+            const partId = document.getElementById('chapterSelect').value;
+            const genomgangDocId = getGenomgangDocId(partId);
+            const collectionName = currentCollection === 'math_tasks' ? 'math_tasks' : 'campaigns';
+            document.getElementById('genomgangPath').textContent = `.../${collectionName}/${topic}/genomgang/${genomgangDocId}`;
+        }
+
+        window.insertGenomgangFormat = function(type) {
+            const editor = document.getElementById('genomgangEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selectedText = editor.value.substring(start, end);
+            let insert = '';
+            let cursorOffset = 0;
+
+            switch(type) {
+                case 'bold':
+                    insert = `**${selectedText || 'fetstil'}**`;
+                    cursorOffset = selectedText ? insert.length : 2;
+                    break;
+                case 'italic':
+                    insert = `*${selectedText || 'kursiv'}*`;
+                    cursorOffset = selectedText ? insert.length : 1;
+                    break;
+                case 'heading':
+                    insert = `\n# ${selectedText || 'Rubrik'}\n`;
+                    cursorOffset = selectedText ? insert.length : 3;
+                    break;
+                case 'subheading':
+                    insert = `\n## ${selectedText || 'Underrubrik'}\n`;
+                    cursorOffset = selectedText ? insert.length : 4;
+                    break;
+                case 'math':
+                    insert = `\n$$${selectedText || 'x^2 + y^2 = z^2'}$$\n`;
+                    cursorOffset = selectedText ? insert.length : 3;
+                    break;
+                case 'inlinemath':
+                    insert = `$${selectedText || 'x'}$`;
+                    cursorOffset = selectedText ? insert.length : 1;
+                    break;
+                case 'list':
+                    insert = `\n- Punkt 1\n- Punkt 2\n- Punkt 3\n`;
+                    cursorOffset = 3;
+                    break;
+                case 'numlist':
+                    insert = `\n1. Första\n2. Andra\n3. Tredje\n`;
+                    cursorOffset = 4;
+                    break;
+                case 'tip':
+                    insert = `\n:::tip\n${selectedText || 'Skriv ditt tips här'}\n:::\n`;
+                    cursorOffset = 8;
+                    break;
+                case 'warning':
+                    insert = `\n:::warning\n${selectedText || 'Skriv din varning här'}\n:::\n`;
+                    cursorOffset = 12;
+                    break;
+                case 'example':
+                    insert = `\n:::example\n${selectedText || 'Skriv ditt exempel här'}\n:::\n`;
+                    cursorOffset = 12;
+                    break;
+            }
+
+            editor.value = editor.value.substring(0, start) + insert + editor.value.substring(end);
+            editor.focus();
+            editor.setSelectionRange(start + cursorOffset, start + cursorOffset);
+        };
+
+        window.insertGenomgangColor = function(color) {
+            const editor = document.getElementById('genomgangEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selectedText = editor.value.substring(start, end) || 'färgad text';
+            
+            const insert = `<span style="color:${color}">${selectedText}</span>`;
+            editor.value = editor.value.substring(0, start) + insert + editor.value.substring(end);
+            editor.focus();
+        };
+
+        window.previewGenomgang = function() {
+            const content = document.getElementById('genomgangEditor').value;
+            const preview = document.getElementById('genomgangPreview');
+            
+            let html = content;
+            
+            // Process special blocks first
+            html = html.replace(/:::tip\n([\s\S]*?)\n:::/g, '<div class="genomgang-tip"><strong>💡 Tips:</strong><br>$1</div>');
+            html = html.replace(/:::warning\n([\s\S]*?)\n:::/g, '<div class="genomgang-warning"><strong>⚠️ Observera:</strong><br>$1</div>');
+            html = html.replace(/:::example\n([\s\S]*?)\n:::/g, '<div class="genomgang-example"><strong>📝 Exempel:</strong><br>$1</div>');
+            
+            // Process headings
+            html = html.replace(/^### (.+)$/gm, '<h4 style="font-size:1.1rem;font-weight:bold;margin:1rem 0 0.5rem;">$1</h4>');
+            html = html.replace(/^## (.+)$/gm, '<h3 style="font-size:1.25rem;font-weight:bold;margin:1.5rem 0 0.75rem;color:#4f46e5;">$1</h3>');
+            html = html.replace(/^# (.+)$/gm, '<h2 style="font-size:1.5rem;font-weight:bold;margin:1.5rem 0 1rem;color:#1e1b4b;">$1</h2>');
+            
+            // Process bold and italic
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            
+            // Process display math ($$...$$)
+            html = html.replace(/\$\$([^$]+)\$\$/g, '<div class="problem-math-block">$$$$1$$</div>');
+            
+            // Process inline math ($...$) - be careful not to double-process
+            html = html.replace(/\$([^$\n]+)\$/g, '\\($1\\)');
+            
+            // Process lists
+            html = html.replace(/^- (.+)$/gm, '<li style="margin-left:1.5rem;">$1</li>');
+            html = html.replace(/^(\d+)\. (.+)$/gm, '<li style="margin-left:1.5rem;list-style-type:decimal;">$2</li>');
+            
+            // Process line breaks (but not in special blocks)
+            html = html.replace(/\n\n/g, '</p><p style="margin-bottom:1rem;">');
+            html = html.replace(/\n/g, '<br>');
+            
+            // Wrap in paragraph
+            html = '<p style="margin-bottom:1rem;">' + html + '</p>';
+            
+            preview.innerHTML = html;
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([preview]).catch(err => console.log('MathJax error:', err));
+            }
+        };
+
+        window.saveGenomgang = async function() {
+            const content = document.getElementById('genomgangEditor').value;
+            const topic = document.getElementById('topicSelect').value;
+            const partId = document.getElementById('chapterSelect').value;
+            const statusEl = document.getElementById('genomgangStatus');
+            
+            if (!content.trim()) {
+                statusEl.innerHTML = '<span class="text-red-600">❌ Skriv något innehåll först!</span>';
+                return;
+            }
+            
+            statusEl.innerHTML = '<span class="text-indigo-600">⏳ Sparar...</span>';
+            
+            try {
+                // Use new genomgång path structure
+                const genomgangPath = getGenomgangPath(topic);
+                const genomgangDocId = getGenomgangDocId(partId);
+                const genomgangRef = window.doc(window.db, genomgangPath, genomgangDocId);
+                
+                await window.setDoc(genomgangRef, {
+                    content: content,
+                    updatedAt: new Date().toISOString(),
+                    topic: topic,
+                    partId: partId,
+                    collection: currentCollection
+                });
+                
+                statusEl.innerHTML = '<span class="text-green-600">✅ Genomgång sparad!</span>';
+                setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+            } catch (e) {
+                console.error('Save error:', e);
+                statusEl.innerHTML = `<span class="text-red-600">❌ Fel: ${e.message}</span>`;
+            }
+        };
+
+        window.loadExistingGenomgang = async function() {
+            const topic = document.getElementById('topicSelect').value;
+            const partId = document.getElementById('chapterSelect').value;
+            const statusEl = document.getElementById('genomgangStatus');
+            const editor = document.getElementById('genomgangEditor');
+            
+            statusEl.innerHTML = '<span class="text-indigo-600">⏳ Laddar...</span>';
+            
+            try {
+                // Use new genomgång path structure
+                const genomgangPath = getGenomgangPath(topic);
+                const genomgangDocId = getGenomgangDocId(partId);
+                const genomgangRef = window.doc(window.db, genomgangPath, genomgangDocId);
+                const docSnap = await window.getDoc(genomgangRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    editor.value = data.content || '';
+                    statusEl.innerHTML = '<span class="text-green-600">✅ Genomgång laddad!</span>';
+                    previewGenomgang();
+                } else {
+                    statusEl.innerHTML = '<span class="text-amber-600">⚠️ Ingen genomgång hittades för denna del</span>';
+                }
+                setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+            } catch (e) {
+                console.error('Load error:', e);
+                statusEl.innerHTML = `<span class="text-red-600">❌ Fel: ${e.message}</span>`;
+            }
+        };
+
+        // ============ DIAGRAM CREATOR FUNCTIONS ============
+        let diagramType = 'bar';
+        let diagramData = [];
+        let diagramColorScheme = 'default';
+        let diagramCanvas, diagramCtx;
+        let diagramInitialized = false;
+
+        const COLOR_SCHEMES = {
+            default: ['#4f46e5', '#7c3aed', '#a855f7', '#c084fc', '#d946ef', '#ec4899'],
+            warm: ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e'],
+            cool: ['#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7'],
+            rainbow: ['#ef4444', '#f59e0b', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7']
+        };
+
+        function initDiagram() {
+            if (diagramInitialized) {
+                updateDiagramPreview();
+                return;
+            }
+            diagramCanvas = document.getElementById('diagramCanvas');
+            diagramCtx = diagramCanvas.getContext('2d');
+            diagramInitialized = true;
+            
+            // Add some default data rows
+            addDiagramDataRow('Fotboll', 15);
+            addDiagramDataRow('Basket', 10);
+            addDiagramDataRow('Simning', 8);
+            addDiagramDataRow('Tennis', 5);
+            
+            updateDiagramPreview();
+        }
+
+        window.setDiagramType = function(type) {
+            diagramType = type;
+            document.getElementById('diagramTypeBar').classList.toggle('active', type === 'bar');
+            document.getElementById('diagramTypeLine').classList.toggle('active', type === 'line');
+            document.getElementById('diagramTypePie').classList.toggle('active', type === 'pie');
+            
+            // Show/hide axis labels section (not relevant for pie charts)
+            document.getElementById('axisLabelsSection').style.display = type === 'pie' ? 'none' : 'grid';
+            
+            // Show/hide pie chart options
+            document.getElementById('pieChartOptions').classList.toggle('hidden', type !== 'pie');
+            
+            updateDiagramPreview();
+        };
+
+        window.setDiagramColorScheme = function(scheme) {
+            diagramColorScheme = scheme;
+            document.querySelectorAll('.diagram-color-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.scheme === scheme);
+            });
+            updateDiagramPreview();
+        };
+
+        window.addDiagramDataRow = function(label = '', value = '') {
+            const container = document.getElementById('diagramDataRows');
+            const rowIndex = container.children.length;
+            
+            const row = document.createElement('div');
+            row.className = 'diagram-data-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Etikett (t.ex. Fotboll)" value="${label}" onchange="updateDiagramPreview()">
+                <input type="number" placeholder="Värde" value="${value}" onchange="updateDiagramPreview()">
+                <button class="remove-row-btn" onclick="removeDiagramDataRow(this)">✕</button>
+            `;
+            container.appendChild(row);
+            
+            updateDiagramPreview();
+        };
+
+        window.removeDiagramDataRow = function(btn) {
+            btn.parentElement.remove();
+            updateDiagramPreview();
+        };
+
+        function getDiagramData() {
+            const rows = document.querySelectorAll('#diagramDataRows .diagram-data-row');
+            const data = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const label = inputs[0].value.trim();
+                const value = parseFloat(inputs[1].value) || 0;
+                if (label || value) {
+                    data.push({ label, value });
+                }
+            });
+            return data;
+        }
+
+        window.updateDiagramPreview = function() {
+            if (!diagramCtx) return;
+            
+            const data = getDiagramData();
+            const colors = COLOR_SCHEMES[diagramColorScheme];
+            const title = document.getElementById('diagramTitle').value || '';
+            const xLabel = document.getElementById('diagramXLabel').value || '';
+            const yLabel = document.getElementById('diagramYLabel').value || '';
+            
+            // Clear canvas
+            diagramCtx.fillStyle = 'white';
+            diagramCtx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+            
+            if (data.length === 0) {
+                diagramCtx.fillStyle = '#9ca3af';
+                diagramCtx.font = '16px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.fillText('Lägg till data för att se diagram', diagramCanvas.width / 2, diagramCanvas.height / 2);
+                return;
+            }
+            
+            // Draw title
+            if (title) {
+                diagramCtx.fillStyle = '#1f2937';
+                diagramCtx.font = 'bold 18px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.fillText(title, diagramCanvas.width / 2, 30);
+            }
+            
+            if (diagramType === 'bar') {
+                drawBarChart(data, colors, xLabel, yLabel);
+            } else if (diagramType === 'line') {
+                drawLineChart(data, colors, xLabel, yLabel);
+            } else if (diagramType === 'pie') {
+                drawPieChart(data, colors);
+            }
+        };
+
+        function drawBarChart(data, colors, xLabel, yLabel) {
+            const padding = { top: 50, right: 30, bottom: 60, left: 60 };
+            const chartWidth = diagramCanvas.width - padding.left - padding.right;
+            const chartHeight = diagramCanvas.height - padding.top - padding.bottom;
+            
+            const maxValue = Math.max(...data.map(d => d.value), 1);
+            const barWidth = chartWidth / data.length * 0.7;
+            const barGap = chartWidth / data.length * 0.15;
+            
+            // Draw axes
+            diagramCtx.strokeStyle = '#374151';
+            diagramCtx.lineWidth = 2;
+            diagramCtx.beginPath();
+            diagramCtx.moveTo(padding.left, padding.top);
+            diagramCtx.lineTo(padding.left, diagramCanvas.height - padding.bottom);
+            diagramCtx.lineTo(diagramCanvas.width - padding.right, diagramCanvas.height - padding.bottom);
+            diagramCtx.stroke();
+            
+            // Draw Y-axis labels
+            diagramCtx.fillStyle = '#6b7280';
+            diagramCtx.font = '12px Inter, sans-serif';
+            diagramCtx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + chartHeight * (1 - i / 5);
+                const value = Math.round(maxValue * i / 5);
+                diagramCtx.fillText(value.toString(), padding.left - 10, y + 4);
+                
+                // Grid line
+                diagramCtx.strokeStyle = '#e5e7eb';
+                diagramCtx.lineWidth = 1;
+                diagramCtx.beginPath();
+                diagramCtx.moveTo(padding.left, y);
+                diagramCtx.lineTo(diagramCanvas.width - padding.right, y);
+                diagramCtx.stroke();
+            }
+            
+            // Draw bars
+            data.forEach((d, i) => {
+                const x = padding.left + barGap + i * (barWidth + barGap * 2);
+                const barHeight = (d.value / maxValue) * chartHeight;
+                const y = diagramCanvas.height - padding.bottom - barHeight;
+                
+                diagramCtx.fillStyle = colors[i % colors.length];
+                diagramCtx.fillRect(x, y, barWidth, barHeight);
+                
+                // Label
+                diagramCtx.fillStyle = '#374151';
+                diagramCtx.font = '11px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.save();
+                diagramCtx.translate(x + barWidth / 2, diagramCanvas.height - padding.bottom + 15);
+                diagramCtx.rotate(-0.3);
+                diagramCtx.fillText(d.label.substring(0, 10), 0, 0);
+                diagramCtx.restore();
+            });
+            
+            // Axis labels
+            if (yLabel) {
+                diagramCtx.save();
+                diagramCtx.fillStyle = '#374151';
+                diagramCtx.font = 'bold 12px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.translate(15, diagramCanvas.height / 2);
+                diagramCtx.rotate(-Math.PI / 2);
+                diagramCtx.fillText(yLabel, 0, 0);
+                diagramCtx.restore();
+            }
+            if (xLabel) {
+                diagramCtx.fillStyle = '#374151';
+                diagramCtx.font = 'bold 12px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.fillText(xLabel, diagramCanvas.width / 2, diagramCanvas.height - 10);
+            }
+        }
+
+        function drawLineChart(data, colors, xLabel, yLabel) {
+            const padding = { top: 50, right: 30, bottom: 60, left: 60 };
+            const chartWidth = diagramCanvas.width - padding.left - padding.right;
+            const chartHeight = diagramCanvas.height - padding.top - padding.bottom;
+            
+            const maxValue = Math.max(...data.map(d => d.value), 1);
+            
+            // Draw axes
+            diagramCtx.strokeStyle = '#374151';
+            diagramCtx.lineWidth = 2;
+            diagramCtx.beginPath();
+            diagramCtx.moveTo(padding.left, padding.top);
+            diagramCtx.lineTo(padding.left, diagramCanvas.height - padding.bottom);
+            diagramCtx.lineTo(diagramCanvas.width - padding.right, diagramCanvas.height - padding.bottom);
+            diagramCtx.stroke();
+            
+            // Draw Y-axis labels
+            diagramCtx.fillStyle = '#6b7280';
+            diagramCtx.font = '12px Inter, sans-serif';
+            diagramCtx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + chartHeight * (1 - i / 5);
+                const value = Math.round(maxValue * i / 5);
+                diagramCtx.fillText(value.toString(), padding.left - 10, y + 4);
+                
+                // Grid line
+                diagramCtx.strokeStyle = '#e5e7eb';
+                diagramCtx.lineWidth = 1;
+                diagramCtx.beginPath();
+                diagramCtx.moveTo(padding.left, y);
+                diagramCtx.lineTo(diagramCanvas.width - padding.right, y);
+                diagramCtx.stroke();
+            }
+            
+            // Draw line
+            const pointGap = chartWidth / (data.length - 1 || 1);
+            
+            diagramCtx.strokeStyle = colors[0];
+            diagramCtx.lineWidth = 3;
+            diagramCtx.beginPath();
+            
+            data.forEach((d, i) => {
+                const x = padding.left + i * pointGap;
+                const y = padding.top + chartHeight * (1 - d.value / maxValue);
+                
+                if (i === 0) {
+                    diagramCtx.moveTo(x, y);
+                } else {
+                    diagramCtx.lineTo(x, y);
+                }
+            });
+            diagramCtx.stroke();
+            
+            // Draw points and labels
+            data.forEach((d, i) => {
+                const x = padding.left + i * pointGap;
+                const y = padding.top + chartHeight * (1 - d.value / maxValue);
+                
+                // Point
+                diagramCtx.fillStyle = colors[0];
+                diagramCtx.beginPath();
+                diagramCtx.arc(x, y, 6, 0, Math.PI * 2);
+                diagramCtx.fill();
+                
+                diagramCtx.fillStyle = 'white';
+                diagramCtx.beginPath();
+                diagramCtx.arc(x, y, 3, 0, Math.PI * 2);
+                diagramCtx.fill();
+                
+                // Label
+                diagramCtx.fillStyle = '#374151';
+                diagramCtx.font = '11px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.fillText(d.label.substring(0, 8), x, diagramCanvas.height - padding.bottom + 15);
+            });
+            
+            // Axis labels
+            if (yLabel) {
+                diagramCtx.save();
+                diagramCtx.fillStyle = '#374151';
+                diagramCtx.font = 'bold 12px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.translate(15, diagramCanvas.height / 2);
+                diagramCtx.rotate(-Math.PI / 2);
+                diagramCtx.fillText(yLabel, 0, 0);
+                diagramCtx.restore();
+            }
+            if (xLabel) {
+                diagramCtx.fillStyle = '#374151';
+                diagramCtx.font = 'bold 12px Inter, sans-serif';
+                diagramCtx.textAlign = 'center';
+                diagramCtx.fillText(xLabel, diagramCanvas.width / 2, diagramCanvas.height - 10);
+            }
+        }
+
+        function drawPieChart(data, colors) {
+            const centerX = diagramCanvas.width / 2;
+            const centerY = diagramCanvas.height / 2 + 15;
+            const radius = Math.min(diagramCanvas.width, diagramCanvas.height) / 2 - 80;
+            
+            const total = data.reduce((sum, d) => sum + d.value, 0);
+            let startAngle = -Math.PI / 2;
+            
+            // Check if we should show percentages
+            const showPercentage = document.getElementById('showPiePercentage')?.checked ?? true;
+            
+            // Draw slices
+            data.forEach((d, i) => {
+                const sliceAngle = (d.value / total) * Math.PI * 2;
+                
+                diagramCtx.fillStyle = colors[i % colors.length];
+                diagramCtx.beginPath();
+                diagramCtx.moveTo(centerX, centerY);
+                diagramCtx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+                diagramCtx.closePath();
+                diagramCtx.fill();
+                
+                // Label line and text
+                const midAngle = startAngle + sliceAngle / 2;
+                const labelRadius = radius + 30;
+                const labelX = centerX + Math.cos(midAngle) * labelRadius;
+                const labelY = centerY + Math.sin(midAngle) * labelRadius;
+                
+                const percentage = Math.round((d.value / total) * 100);
+                
+                diagramCtx.fillStyle = '#374151';
+                diagramCtx.font = '11px Inter, sans-serif';
+                diagramCtx.textAlign = midAngle > Math.PI / 2 && midAngle < Math.PI * 1.5 ? 'right' : 'left';
+                
+                // Show label with or without percentage based on checkbox
+                const labelText = showPercentage ? `${d.label} (${percentage}%)` : d.label;
+                diagramCtx.fillText(labelText, labelX, labelY);
+                
+                startAngle += sliceAngle;
+            });
+        }
+
+        window.previewDiagramTask = function() {
+            const question = document.getElementById('diagramQuestion').value;
+            const previewEl = document.getElementById('diagramTaskPreview');
+            
+            if (!question.trim()) {
+                previewEl.innerHTML = '<p class="text-gray-400 text-center italic py-8">Skriv en fråga för att se förhandsvisning...</p>';
+                return;
+            }
+            
+            // Generate diagram image
+            const diagramImage = diagramCanvas.toDataURL('image/png');
+            
+            const scaffolding = document.getElementById('diagramScaffolding').value.trim();
+            const solution = document.getElementById('diagramSolution').value.trim();
+            const answer = document.getElementById('diagramAnswer').value.trim();
+            
+            let html = `
+                <div class="problem-text-block">${escapeHtml(question)}</div>
+                <img src="${diagramImage}" alt="Diagram" style="max-width: 100%; margin: 1rem 0; border-radius: 8px; border: 1px solid #e2e8f0;">
+            `;
+            
+            if (scaffolding) {
+                html += '<div class="scaffold-block">';
+                html += '<div class="scaffold-number">💡 Ledtrådar:</div>';
+                scaffolding.split('\n').forEach((line, i) => {
+                    if (line.trim()) {
+                        html += `<div>${line.replace(/^\d+[\.\)]\s*/, '')}</div>`;
+                    }
+                });
+                html += '</div>';
+            }
+            
+            if (solution) {
+                html += '<div class="step-block">';
+                html += '<div class="step-number">📝 Lösning:</div>';
+                solution.split('\n').forEach((line, i) => {
+                    if (line.trim()) {
+                        html += `<div>${line.replace(/^\d+[\.\)]\s*/, '')}</div>`;
+                    }
+                });
+                html += '</div>';
+            }
+            
+            if (answer) {
+                html += `<div style="background: #dcfce7; border-left: 4px solid #16a34a; padding: 1rem; margin-top: 1rem; border-radius: 0 0.5rem 0.5rem 0;">
+                    <strong style="color: #16a34a;">Svar:</strong> ${escapeHtml(answer)}
+                </div>`;
+            }
+            
+            previewEl.innerHTML = html;
+        };
+
+        window.saveDiagramTask = async function() {
+            const question = document.getElementById('diagramQuestion').value.trim();
+            const statusEl = document.getElementById('diagramSaveStatus');
+            
+            if (!question) {
+                statusEl.innerHTML = '<span class="text-red-600">❌ Skriv en fråga först!</span>';
+                return;
+            }
+            
+            const data = getDiagramData();
+            if (data.length === 0) {
+                statusEl.innerHTML = '<span class="text-red-600">❌ Lägg till data i diagrammet!</span>';
+                return;
+            }
+            
+            statusEl.innerHTML = '<span class="text-indigo-600">⏳ Sparar...</span>';
+            
+            try {
+                const topic = document.getElementById('topicSelect').value;
+                const partId = document.getElementById('chapterSelect').value;
+                const path = getFirebasePath(topic, partId);
+                
+                // Generate diagram image as data URL
+                const diagramImage = diagramCanvas.toDataURL('image/png');
+                
+                // Parse scaffolding and solution
+                const scaffoldingText = document.getElementById('diagramScaffolding').value.trim();
+                const solutionText = document.getElementById('diagramSolution').value.trim();
+                const answer = document.getElementById('diagramAnswer').value.trim();
+                const answerUnit = document.getElementById('diagramAnswerUnit').value.trim();
+                
+                const scaffolding = scaffoldingText ? scaffoldingText.split('\n')
+                    .filter(l => l.trim())
+                    .map(l => ({ type: 'scaffold', value: l.replace(/^\d+[\.\)]\s*/, '').trim() })) : [];
+                
+                const solution = solutionText ? solutionText.split('\n')
+                    .filter(l => l.trim())
+                    .map(l => ({ type: 'step', value: l.replace(/^\d+[\.\)]\s*/, '').trim() })) : [];
+                
+                const taskData = {
+                    question_sv: [
+                        { type: 'text', value: question },
+                        { type: 'image', value: diagramImage }
+                    ],
+                    scaffolding_sv: scaffolding,
+                    solution_sv: solution,
+                    answer: answer + (answerUnit ? ' ' + answerUnit : ''),
+                    diagramData: {
+                        type: diagramType,
+                        data: data,
+                        colorScheme: diagramColorScheme,
+                        title: document.getElementById('diagramTitle').value,
+                        xLabel: document.getElementById('diagramXLabel').value,
+                        yLabel: document.getElementById('diagramYLabel').value
+                    },
+                    createdAt: new Date().toISOString()
+                };
+                
+                await addDoc(collection(db, path), taskData);
+                
+                statusEl.innerHTML = '<span class="text-green-600">✅ Uppgift sparad!</span>';
+                setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+                
+            } catch (e) {
+                console.error('Save error:', e);
+                statusEl.innerHTML = `<span class="text-red-600">❌ Fel: ${e.message}</span>`;
+            }
+        };
+
+        window.clearDiagramForm = function() {
+            document.getElementById('diagramTitle').value = '';
+            document.getElementById('diagramXLabel').value = '';
+            document.getElementById('diagramYLabel').value = '';
+            document.getElementById('diagramQuestion').value = '';
+            document.getElementById('diagramScaffolding').value = '';
+            document.getElementById('diagramSolution').value = '';
+            document.getElementById('diagramAnswer').value = '';
+            document.getElementById('diagramAnswerUnit').value = '';
+            
+            // Reset data rows
+            const container = document.getElementById('diagramDataRows');
+            container.innerHTML = '';
+            addDiagramDataRow('', '');
+            addDiagramDataRow('', '');
+            
+            document.getElementById('diagramTaskPreview').innerHTML = '<p class="text-gray-400 text-center italic py-8">Fyll i data och fråga för att se förhandsvisning...</p>';
+            
+            updateDiagramPreview();
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+    </script>
+</body>
+</html>
