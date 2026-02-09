@@ -666,12 +666,21 @@ Beräkna $\frac{3}{4} + \frac{2}{3}$
                             <div id="graphElementsList" class="space-y-2 mb-3 max-h-48 overflow-y-auto">
                                 <!-- Elements will be added here -->
                             </div>
-                            <div class="flex gap-2">
+                            <div class="flex flex-wrap gap-2">
                                 <button onclick="addGraphElement('line')" class="flex-1 bg-blue-100 text-blue-700 py-2 px-3 rounded-lg font-medium hover:bg-blue-200 transition text-sm">
                                     ➕ Linje
                                 </button>
                                 <button onclick="addGraphElement('parabola')" class="flex-1 bg-purple-100 text-purple-700 py-2 px-3 rounded-lg font-medium hover:bg-purple-200 transition text-sm">
                                     ➕ Parabel
+                                </button>
+                                <button onclick="addGraphElement('cubic')" class="flex-1 bg-pink-100 text-pink-700 py-2 px-3 rounded-lg font-medium hover:bg-pink-200 transition text-sm">
+                                    ➕ Kubisk
+                                </button>
+                                <button onclick="addGraphElement('quartic')" class="flex-1 bg-orange-100 text-orange-700 py-2 px-3 rounded-lg font-medium hover:bg-orange-200 transition text-sm">
+                                    ➕ 4:e grad
+                                </button>
+                                <button onclick="addGraphElement('exponential')" class="flex-1 bg-teal-100 text-teal-700 py-2 px-3 rounded-lg font-medium hover:bg-teal-200 transition text-sm">
+                                    ➕ Exponentiell
                                 </button>
                                 <button onclick="addGraphElement('points')" class="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded-lg font-medium hover:bg-green-200 transition text-sm">
                                     ➕ Punkter
@@ -741,11 +750,20 @@ Beräkna $\frac{3}{4} + \frac{2}{3}$
                                     <label class="block text-sm font-bold text-gray-600 mb-2">Snabbfråga</label>
                                     <select id="graphQuickQuestion" class="w-full p-3 border-2 border-gray-200 rounded-xl" onchange="applyQuickQuestion()">
                                         <option value="">Välj mall...</option>
-                                        <option value="f(x)">Avläs f(x)</option>
-                                        <option value="k">Bestäm lutningen k</option>
-                                        <option value="m">Bestäm m-värdet</option>
-                                        <option value="zero">Hitta nollställen</option>
-                                        <option value="vertex">Hitta vertex</option>
+                                        <optgroup label="📖 Avläsning">
+                                            <option value="f(x)">Avläs f(x)</option>
+                                            <option value="findCoord">Hitta koordinater</option>
+                                        </optgroup>
+                                        <optgroup label="📐 Linjära funktioner">
+                                            <option value="k">Bestäm lutningen k</option>
+                                            <option value="m">Bestäm m-värdet</option>
+                                            <option value="determineFunc">Bestäm funktionen</option>
+                                        </optgroup>
+                                        <optgroup label="📊 Ekvationer">
+                                            <option value="solveEq">Lös ekvationen grafiskt</option>
+                                            <option value="zero">Hitta nollställen</option>
+                                            <option value="vertex">Hitta vertex</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                             </div>
@@ -896,11 +914,49 @@ $x = 2$ eller $x = -2$</div>
 
             <!-- TAB 3: Manage -->
             <div id="viewList" class="hidden p-6">
+                <!-- Task Counter Section -->
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 mb-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold mb-1">📊 Uppgiftsräknare</h3>
+                            <p class="text-indigo-100 text-sm">Totalt antal uppgifter i databasen</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-black" id="totalTaskCount">--</div>
+                            <div class="text-xs text-indigo-200">uppgifter totalt</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-white/20">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <span class="text-indigo-200 text-xs">Kapitelträning:</span>
+                                <span class="font-bold ml-2" id="campaignTaskCount">--</span>
+                            </div>
+                            <div>
+                                <span class="text-indigo-200 text-xs">Typuppgifter NP:</span>
+                                <span class="font-bold ml-2" id="npTaskCount">--</span>
+                            </div>
+                            <div>
+                                <span class="text-indigo-200 text-xs">📅 Denna vecka:</span>
+                                <span class="font-bold ml-2 text-green-300" id="weeklyTaskCount">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="currentPathTaskCount" class="mt-2 text-sm text-indigo-100 hidden">
+                        📂 <span id="currentPathName">-</span>: <span id="currentPathCount" class="font-bold">0</span> uppgifter
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-gray-800">📚 Befintliga Uppgifter</h2>
-                    <button onclick="loadTasks()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition">
-                        🔄 Ladda om
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="countAllTasks()" class="bg-purple-100 hover:bg-purple-200 text-purple-700 py-2 px-4 rounded-lg font-medium transition">
+                            🔢 Räkna alla
+                        </button>
+                        <button onclick="loadTasks()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition">
+                            🔄 Ladda om
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Filters -->
@@ -1438,6 +1494,9 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 window.firebaseReady = true;
                 populateTopicSelect();
                 await loadTasks();
+                
+                // Auto-count all tasks on init
+                countAllTasks();
             } catch (e) {
                 console.error('Firebase init error:', e);
                 statusDot.className = 'w-3 h-3 rounded-full bg-red-400';
@@ -1449,6 +1508,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     populateTopicSelect();
                     await loadTasks();
                     statusText.textContent += ' (läser utan inloggning)';
+                    countAllTasks();
                 } catch (readErr) {
                     console.error('Fallback read error:', readErr);
                 }
@@ -1585,11 +1645,17 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
             
             let params = {};
             if (type === 'line') {
-                params = { k: 1, m: 0 };
+                params = { k: 1, m: 0, name: '', xMin: null, xMax: null };
             } else if (type === 'parabola') {
-                params = { a: 1, b: 0, c: 0 };
+                params = { a: 1, b: 0, c: 0, name: '', xMin: null, xMax: null };
+            } else if (type === 'cubic') {
+                params = { a: 1, b: 0, c: 0, d: 0, name: '', xMin: null, xMax: null };
+            } else if (type === 'quartic') {
+                params = { a: 1, b: 0, c: 0, d: 0, e: 0, name: '', xMin: null, xMax: null };
+            } else if (type === 'exponential') {
+                params = { base: 1.04, multiplier: 1, offset: 0, name: '', xMin: 0, xMax: null };
             } else if (type === 'points') {
-                params = { points: '(0,0)' };
+                params = { points: '(0,0)', name: '' };
             }
             
             graphElements.push({ id, type, params, color });
@@ -1626,20 +1692,37 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
             
             container.innerHTML = graphElements.map(el => {
                 const isSelected = el.id === selectedElementId;
-                const typeLabel = el.type === 'line' ? '📏 Linje' : el.type === 'parabola' ? '〰️ Parabel' : '⚫ Punkter';
+                let typeLabel = '';
                 let valueLabel = '';
+                
                 if (el.type === 'line') {
-                    valueLabel = `y = ${el.params.k}x + ${el.params.m}`;
+                    typeLabel = '📏 Linje';
+                    valueLabel = el.params.name || `y = ${el.params.k}x + ${el.params.m}`;
                 } else if (el.type === 'parabola') {
-                    valueLabel = `y = ${el.params.a}x² + ${el.params.b}x + ${el.params.c}`;
-                } else {
-                    valueLabel = el.params.points;
+                    typeLabel = '〰️ Parabel';
+                    valueLabel = el.params.name || `y = ${el.params.a}x² + ${el.params.b}x + ${el.params.c}`;
+                } else if (el.type === 'cubic') {
+                    typeLabel = '📈 Kubisk';
+                    valueLabel = el.params.name || `y = ${el.params.a}x³ + ...`;
+                } else if (el.type === 'quartic') {
+                    typeLabel = '📊 4:e grad';
+                    valueLabel = el.params.name || `y = ${el.params.a}x⁴ + ...`;
+                } else if (el.type === 'exponential') {
+                    typeLabel = '📉 Exp';
+                    valueLabel = el.params.name || `y = ${el.params.multiplier}·${el.params.base}^x + ${el.params.offset}`;
+                } else if (el.type === 'points') {
+                    typeLabel = '⚫ Punkter';
+                    valueLabel = el.params.name || el.params.points;
                 }
+                
+                // Show domain restriction if set
+                const hasDomain = (el.params.xMin !== null && el.params.xMin !== '') || (el.params.xMax !== null && el.params.xMax !== '');
+                const domainBadge = hasDomain ? `<span class="text-xs bg-gray-200 text-gray-600 px-1 rounded ml-1">D</span>` : '';
                 
                 return `
                     <div onclick="selectElement(${el.id})" class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ${isSelected ? 'bg-indigo-100 border-2 border-indigo-400' : 'bg-white border-2 border-gray-200 hover:border-indigo-300'}">
                         <div class="w-4 h-4 rounded-full" style="background: ${el.color}"></div>
-                        <span class="text-sm font-medium flex-1">${typeLabel}: ${valueLabel}</span>
+                        <span class="text-sm font-medium flex-1 truncate">${typeLabel}: ${valueLabel}${domainBadge}</span>
                         <button onclick="event.stopPropagation(); removeElement(${el.id})" class="text-red-500 hover:text-red-700 text-lg">×</button>
                     </div>
                 `;
@@ -1656,9 +1739,34 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 return;
             }
             
+            // Common name and domain fields
+            const nameField = `
+                <div class="mb-3">
+                    <label class="text-xs text-gray-500">Namn (visas i listan)</label>
+                    <input type="text" value="${el.params.name || ''}" class="w-full p-2 border-2 border-gray-200 rounded-lg" placeholder="t.ex. f(x) eller Räntekurva" onchange="updateElementParam(${el.id}, 'name', this.value)">
+                </div>
+            `;
+            
+            const domainFields = el.type !== 'points' ? `
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <label class="text-xs text-gray-500 font-bold">Definitionsmängd (lämna tomt för hela)</label>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                            <label class="text-xs text-gray-400">x min</label>
+                            <input type="number" value="${el.params.xMin ?? ''}" step="1" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" placeholder="∞" onchange="updateElementParam(${el.id}, 'xMin', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400">x max</label>
+                            <input type="number" value="${el.params.xMax ?? ''}" step="1" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" placeholder="∞" onchange="updateElementParam(${el.id}, 'xMax', this.value)">
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+            
             if (el.type === 'line') {
                 container.innerHTML = `
                     <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">📏 Linje: y = kx + m</label>
+                    ${nameField}
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs text-gray-500">k (lutning)</label>
@@ -1669,10 +1777,12 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                             <input type="number" value="${el.params.m}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'm', this.value)">
                         </div>
                     </div>
+                    ${domainFields}
                 `;
             } else if (el.type === 'parabola') {
                 container.innerHTML = `
                     <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">〰️ Parabel: y = ax² + bx + c</label>
+                    ${nameField}
                     <div class="grid grid-cols-3 gap-3">
                         <div>
                             <label class="text-xs text-gray-500">a</label>
@@ -1687,10 +1797,85 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                             <input type="number" value="${el.params.c}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'c', this.value)">
                         </div>
                     </div>
+                    ${domainFields}
+                `;
+            } else if (el.type === 'cubic') {
+                container.innerHTML = `
+                    <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">📈 Kubisk: y = ax³ + bx² + cx + d</label>
+                    ${nameField}
+                    <div class="grid grid-cols-4 gap-2">
+                        <div>
+                            <label class="text-xs text-gray-500">a</label>
+                            <input type="number" value="${el.params.a}" step="0.1" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateElementParam(${el.id}, 'a', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">b</label>
+                            <input type="number" value="${el.params.b}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateElementParam(${el.id}, 'b', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">c</label>
+                            <input type="number" value="${el.params.c}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateElementParam(${el.id}, 'c', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">d</label>
+                            <input type="number" value="${el.params.d}" step="0.5" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" onchange="updateElementParam(${el.id}, 'd', this.value)">
+                        </div>
+                    </div>
+                    ${domainFields}
+                `;
+            } else if (el.type === 'quartic') {
+                container.innerHTML = `
+                    <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">📊 4:e grad: y = ax⁴ + bx³ + cx² + dx + e</label>
+                    ${nameField}
+                    <div class="grid grid-cols-5 gap-1">
+                        <div>
+                            <label class="text-xs text-gray-500">a</label>
+                            <input type="number" value="${el.params.a}" step="0.01" class="w-full p-1 border-2 border-gray-200 rounded-lg text-xs" onchange="updateElementParam(${el.id}, 'a', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">b</label>
+                            <input type="number" value="${el.params.b}" step="0.1" class="w-full p-1 border-2 border-gray-200 rounded-lg text-xs" onchange="updateElementParam(${el.id}, 'b', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">c</label>
+                            <input type="number" value="${el.params.c}" step="0.5" class="w-full p-1 border-2 border-gray-200 rounded-lg text-xs" onchange="updateElementParam(${el.id}, 'c', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">d</label>
+                            <input type="number" value="${el.params.d}" step="0.5" class="w-full p-1 border-2 border-gray-200 rounded-lg text-xs" onchange="updateElementParam(${el.id}, 'd', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">e</label>
+                            <input type="number" value="${el.params.e}" step="0.5" class="w-full p-1 border-2 border-gray-200 rounded-lg text-xs" onchange="updateElementParam(${el.id}, 'e', this.value)">
+                        </div>
+                    </div>
+                    ${domainFields}
+                `;
+            } else if (el.type === 'exponential') {
+                container.innerHTML = `
+                    <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">📉 Exponentiell: y = k · b^x + c</label>
+                    <p class="text-xs text-gray-400 mb-2">Exempel: 40000 med 4% ränta → k=40000, b=1.04, c=0</p>
+                    ${nameField}
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-500">k (multiplikator)</label>
+                            <input type="number" value="${el.params.multiplier}" step="1000" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'multiplier', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">b (bas, t.ex. 1.04)</label>
+                            <input type="number" value="${el.params.base}" step="0.01" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'base', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">c (offset)</label>
+                            <input type="number" value="${el.params.offset}" step="1000" class="w-full p-2 border-2 border-gray-200 rounded-lg" onchange="updateElementParam(${el.id}, 'offset', this.value)">
+                        </div>
+                    </div>
+                    ${domainFields}
                 `;
             } else if (el.type === 'points') {
                 container.innerHTML = `
                     <label class="block text-sm font-bold text-gray-600 mb-2" style="color: ${el.color}">⚫ Punkter (separera med komma)</label>
+                    ${nameField}
                     <input type="text" value="${el.params.points}" class="w-full p-2 border-2 border-gray-200 rounded-lg" placeholder="(1,2), (3,4), (-2,1)" onchange="updateElementParam(${el.id}, 'points', this.value)">
                 `;
             }
@@ -1700,14 +1885,43 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
             const el = graphElements.find(e => e.id === id);
             if (!el) return;
             
-            if (param === 'points') {
+            if (param === 'points' || param === 'name') {
                 el.params[param] = value;
+            } else if (param === 'xMin' || param === 'xMax') {
+                // Allow empty for "unlimited"
+                el.params[param] = value === '' ? null : parseFloat(value);
             } else {
                 el.params[param] = parseFloat(value) || 0;
             }
             renderElementsList();
             updateGraph();
         };
+        
+        // Helper: Calculate nice step size for axis labels
+        function calculateNiceStep(range) {
+            const roughStep = range / 10; // Aim for about 10 labels
+            const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+            const residual = roughStep / magnitude;
+            
+            let niceStep;
+            if (residual <= 1) niceStep = magnitude;
+            else if (residual <= 2) niceStep = 2 * magnitude;
+            else if (residual <= 5) niceStep = 5 * magnitude;
+            else niceStep = 10 * magnitude;
+            
+            return Math.max(niceStep, 1); // At least 1
+        }
+        
+        // Helper: Format number for axis labels
+        function formatAxisLabel(value, step) {
+            if (Math.abs(value) >= 10000) {
+                return (value / 1000).toFixed(0) + 'k';
+            }
+            if (step < 1) {
+                return value.toFixed(1);
+            }
+            return Math.round(value).toString();
+        }
 
         window.updateGraph = function() {
             if (!graphCanvas || !graphCtx) return;
@@ -1719,25 +1933,34 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
             const yMin = parseFloat(document.getElementById('yMin').value) || -5;
             const yMax = parseFloat(document.getElementById('yMax').value) || 5;
             
+            const xRange = xMax - xMin;
+            const yRange = yMax - yMin;
+            
+            // Calculate smart step sizes
+            const xStep = calculateNiceStep(xRange);
+            const yStep = calculateNiceStep(yRange);
+            
             // Clear canvas
             graphCtx.fillStyle = 'white';
             graphCtx.fillRect(0, 0, width, height);
             
             // Helper functions
-            const toPixelX = x => ((x - xMin) / (xMax - xMin)) * width;
-            const toPixelY = y => height - ((y - yMin) / (yMax - yMin)) * height;
+            const toPixelX = x => ((x - xMin) / xRange) * width;
+            const toPixelY = y => height - ((y - yMin) / yRange) * height;
             
-            // Draw grid
+            // Draw grid with smart spacing
             graphCtx.strokeStyle = '#e5e7eb';
             graphCtx.lineWidth = 1;
             
-            for (let x = Math.ceil(xMin); x <= xMax; x++) {
+            // X grid lines
+            for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
                 graphCtx.beginPath();
                 graphCtx.moveTo(toPixelX(x), 0);
                 graphCtx.lineTo(toPixelX(x), height);
                 graphCtx.stroke();
             }
-            for (let y = Math.ceil(yMin); y <= yMax; y++) {
+            // Y grid lines
+            for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
                 graphCtx.beginPath();
                 graphCtx.moveTo(0, toPixelY(y));
                 graphCtx.lineTo(width, toPixelY(y));
@@ -1764,17 +1987,27 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 graphCtx.stroke();
             }
             
-            // Draw axis labels
+            // Draw axis labels with smart spacing
             graphCtx.fillStyle = '#374151';
-            graphCtx.font = '12px Inter';
-            for (let x = Math.ceil(xMin); x <= xMax; x++) {
-                if (x !== 0) {
-                    graphCtx.fillText(x.toString(), toPixelX(x) - 4, toPixelY(0) + 14);
+            graphCtx.font = '11px Inter';
+            
+            // X-axis labels
+            for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+                if (Math.abs(x) > 0.001) { // Skip 0
+                    const label = formatAxisLabel(x, xStep);
+                    graphCtx.textAlign = 'center';
+                    const yPos = yMin <= 0 && yMax >= 0 ? toPixelY(0) + 14 : height - 5;
+                    graphCtx.fillText(label, toPixelX(x), yPos);
                 }
             }
-            for (let y = Math.ceil(yMin); y <= yMax; y++) {
-                if (y !== 0) {
-                    graphCtx.fillText(y.toString(), toPixelX(0) + 4, toPixelY(y) + 4);
+            
+            // Y-axis labels
+            for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+                if (Math.abs(y) > 0.001) { // Skip 0
+                    const label = formatAxisLabel(y, yStep);
+                    graphCtx.textAlign = 'left';
+                    const xPos = xMin <= 0 && xMax >= 0 ? toPixelX(0) + 4 : 5;
+                    graphCtx.fillText(label, xPos, toPixelY(y) + 4);
                 }
             }
             
@@ -1784,14 +2017,32 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 graphCtx.fillStyle = el.color;
                 graphCtx.lineWidth = 3;
                 
+                // Get domain bounds for this element
+                const elXMin = (el.params.xMin !== null && el.params.xMin !== '') ? el.params.xMin : xMin;
+                const elXMax = (el.params.xMax !== null && el.params.xMax !== '') ? el.params.xMax : xMax;
+                
                 if (el.type === 'line') {
                     const k = el.params.k;
                     const m = el.params.m;
                     
                     graphCtx.beginPath();
-                    graphCtx.moveTo(toPixelX(xMin), toPixelY(k * xMin + m));
-                    graphCtx.lineTo(toPixelX(xMax), toPixelY(k * xMax + m));
+                    graphCtx.moveTo(toPixelX(elXMin), toPixelY(k * elXMin + m));
+                    graphCtx.lineTo(toPixelX(elXMax), toPixelY(k * elXMax + m));
                     graphCtx.stroke();
+                    
+                    // Draw endpoints if domain is restricted
+                    if (el.params.xMin !== null || el.params.xMax !== null) {
+                        if (el.params.xMin !== null) {
+                            graphCtx.beginPath();
+                            graphCtx.arc(toPixelX(elXMin), toPixelY(k * elXMin + m), 5, 0, Math.PI * 2);
+                            graphCtx.fill();
+                        }
+                        if (el.params.xMax !== null) {
+                            graphCtx.beginPath();
+                            graphCtx.arc(toPixelX(elXMax), toPixelY(k * elXMax + m), 5, 0, Math.PI * 2);
+                            graphCtx.fill();
+                        }
+                    }
                     
                 } else if (el.type === 'parabola') {
                     const a = el.params.a;
@@ -1800,9 +2051,94 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     
                     graphCtx.beginPath();
                     let first = true;
-                    for (let px = 0; px <= width; px += 2) {
-                        const x = xMin + (px / width) * (xMax - xMin);
+                    const startPx = Math.max(0, toPixelX(elXMin));
+                    const endPx = Math.min(width, toPixelX(elXMax));
+                    
+                    for (let px = startPx; px <= endPx; px += 2) {
+                        const x = xMin + (px / width) * xRange;
+                        if (x < elXMin || x > elXMax) continue;
                         const y = a * x * x + b * x + c;
+                        
+                        if (first) {
+                            graphCtx.moveTo(px, toPixelY(y));
+                            first = false;
+                        } else {
+                            graphCtx.lineTo(px, toPixelY(y));
+                        }
+                    }
+                    graphCtx.stroke();
+                    
+                } else if (el.type === 'cubic') {
+                    const a = el.params.a;
+                    const b = el.params.b;
+                    const c = el.params.c;
+                    const d = el.params.d;
+                    
+                    graphCtx.beginPath();
+                    let first = true;
+                    const startPx = Math.max(0, toPixelX(elXMin));
+                    const endPx = Math.min(width, toPixelX(elXMax));
+                    
+                    for (let px = startPx; px <= endPx; px += 2) {
+                        const x = xMin + (px / width) * xRange;
+                        if (x < elXMin || x > elXMax) continue;
+                        const y = a * x * x * x + b * x * x + c * x + d;
+                        
+                        if (first) {
+                            graphCtx.moveTo(px, toPixelY(y));
+                            first = false;
+                        } else {
+                            graphCtx.lineTo(px, toPixelY(y));
+                        }
+                    }
+                    graphCtx.stroke();
+                    
+                } else if (el.type === 'quartic') {
+                    const a = el.params.a;
+                    const b = el.params.b;
+                    const c = el.params.c;
+                    const d = el.params.d;
+                    const e = el.params.e;
+                    
+                    graphCtx.beginPath();
+                    let first = true;
+                    const startPx = Math.max(0, toPixelX(elXMin));
+                    const endPx = Math.min(width, toPixelX(elXMax));
+                    
+                    for (let px = startPx; px <= endPx; px += 2) {
+                        const x = xMin + (px / width) * xRange;
+                        if (x < elXMin || x > elXMax) continue;
+                        const y = a * Math.pow(x, 4) + b * Math.pow(x, 3) + c * x * x + d * x + e;
+                        
+                        if (first) {
+                            graphCtx.moveTo(px, toPixelY(y));
+                            first = false;
+                        } else {
+                            graphCtx.lineTo(px, toPixelY(y));
+                        }
+                    }
+                    graphCtx.stroke();
+                    
+                } else if (el.type === 'exponential') {
+                    const base = el.params.base;
+                    const multiplier = el.params.multiplier;
+                    const offset = el.params.offset;
+                    
+                    graphCtx.beginPath();
+                    let first = true;
+                    const startPx = Math.max(0, toPixelX(elXMin));
+                    const endPx = Math.min(width, toPixelX(elXMax));
+                    
+                    for (let px = startPx; px <= endPx; px += 2) {
+                        const x = xMin + (px / width) * xRange;
+                        if (x < elXMin || x > elXMax) continue;
+                        const y = multiplier * Math.pow(base, x) + offset;
+                        
+                        // Skip if y is way out of bounds (prevent rendering issues)
+                        if (y > yMax * 10 || y < yMin * 10) {
+                            first = true;
+                            continue;
+                        }
                         
                         if (first) {
                             graphCtx.moveTo(px, toPixelY(y));
@@ -1826,6 +2162,23 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                         }
                     });
                 }
+                
+                // Draw element name label if set
+                if (el.params.name && el.type !== 'points') {
+                    graphCtx.font = 'bold 12px Inter';
+                    graphCtx.fillStyle = el.color;
+                    const labelX = toPixelX(elXMax) - 40;
+                    let labelY;
+                    
+                    if (el.type === 'line') {
+                        labelY = toPixelY(el.params.k * elXMax + el.params.m) - 8;
+                    } else if (el.type === 'exponential') {
+                        labelY = toPixelY(el.params.multiplier * Math.pow(el.params.base, elXMax) + el.params.offset) - 8;
+                    } else {
+                        labelY = 30;
+                    }
+                    graphCtx.fillText(el.params.name, labelX, Math.max(15, Math.min(height - 15, labelY)));
+                }
             });
         };
 
@@ -1839,6 +2192,10 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 questionEl.value = 'Avläs f(2) i grafen ovan.';
                 scaffoldEl.value = '1. Hitta x=2 på x-axeln\n2. Gå uppåt/nedåt tills du träffar grafen\n3. Avläs y-värdet';
                 solutionEl.value = '1. Vi hittar x=2 på x-axeln\n2. Vi följer linjen uppåt/nedåt till grafen\n3. Vi avläser y-värdet';
+            } else if (type === 'findCoord') {
+                questionEl.value = 'Vilka koordinater har punkten P?';
+                scaffoldEl.value = '1. Hitta punkten P i grafen\n2. Avläs x-koordinaten (horisontellt)\n3. Avläs y-koordinaten (vertikalt)';
+                solutionEl.value = '1. Vi lokaliserar punkten P\n2. Vi avläser x-koordinaten: x = ...\n3. Vi avläser y-koordinaten: y = ...\n4. Punkten har koordinaterna (x, y)';
             } else if (type === 'k') {
                 questionEl.value = 'Bestäm linjens lutning k.';
                 scaffoldEl.value = '1. Välj två punkter på linjen\n2. Använd formeln k = Δy / Δx\n3. Räkna ut hur mycket y ändras när x ökar med 1';
@@ -1847,6 +2204,14 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 questionEl.value = 'Bestäm linjens m-värde (y-intercept).';
                 scaffoldEl.value = '1. Hitta där linjen skär y-axeln\n2. Avläs y-värdet vid x=0';
                 solutionEl.value = '1. Vi ser var linjen korsar y-axeln\n2. Vid x=0 är y = m\n3. Alltså är m = ...';
+            } else if (type === 'determineFunc') {
+                questionEl.value = 'Bestäm funktionen f(x) = kx + m utifrån grafen.';
+                scaffoldEl.value = '1. Avläs m-värdet (där linjen korsar y-axeln)\n2. Välj två punkter och beräkna lutningen k = Δy/Δx\n3. Skriv funktionen på formen f(x) = kx + m';
+                solutionEl.value = '1. Linjen korsar y-axeln vid y = m, alltså m = ...\n2. Vi väljer punkterna (..., ...) och (..., ...)\n3. k = (y₂ - y₁)/(x₂ - x₁) = .../... = ...\n4. Funktionen är f(x) = ...x + ...';
+            } else if (type === 'solveEq') {
+                questionEl.value = 'Lös ekvationen f(x) = g(x) grafiskt.';
+                scaffoldEl.value = '1. Hitta där de två graferna skär varandra\n2. Avläs x-koordinaten vid skärningspunkten\n3. Det är lösningen till ekvationen';
+                solutionEl.value = '1. Graferna f(x) och g(x) skär varandra i en punkt\n2. Vi avläser x-koordinaten vid skärningspunkten\n3. x = ... är lösningen till ekvationen';
             } else if (type === 'zero') {
                 questionEl.value = 'Bestäm grafens nollställen (där y=0).';
                 scaffoldEl.value = '1. Hitta där grafen korsar x-axeln\n2. Avläs x-värdena vid dessa punkter';
@@ -2518,8 +2883,127 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 });
 
                 filterTasks();
+                
+                // Update current path task count
+                updateCurrentPathCount(topic, partId, allTasks.length);
             } catch (e) {
                 list.innerHTML = `<p class="text-red-500 text-center py-8">Fel: ${e.message}</p>`;
+            }
+        };
+        
+        // Update the current path task count display
+        function updateCurrentPathCount(topic, partId, count) {
+            const structure = getCurrentStructure()[topic];
+            const partData = structure?.parts?.find(p => p.id === partId);
+            const topicName = structure?.name || topic;
+            const partName = partData?.name || partId;
+            
+            document.getElementById('currentPathName').textContent = `${topicName} → ${partName}`;
+            document.getElementById('currentPathCount').textContent = count;
+            document.getElementById('currentPathTaskCount').classList.remove('hidden');
+        }
+        
+        // Helper: Get Monday of current week (00:00:00)
+        function getMondayOfCurrentWeek() {
+            const now = new Date();
+            const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+            const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days since Monday
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - diff);
+            monday.setHours(0, 0, 0, 0);
+            return monday;
+        }
+
+        // Count ALL tasks in the database
+        window.countAllTasks = async function() {
+            const totalEl = document.getElementById('totalTaskCount');
+            const campaignEl = document.getElementById('campaignTaskCount');
+            const npEl = document.getElementById('npTaskCount');
+            const weeklyEl = document.getElementById('weeklyTaskCount');
+            
+            totalEl.textContent = '...';
+            campaignEl.textContent = '...';
+            npEl.textContent = '...';
+            weeklyEl.textContent = '...';
+            
+            let campaignTotal = 0;
+            let npTotal = 0;
+            let weeklyTotal = 0;
+            
+            const mondayTimestamp = getMondayOfCurrentWeek().getTime();
+            
+            try {
+                // Count Kapitelträning (campaigns)
+                for (const topicKey of Object.keys(COURSE_STRUCTURE)) {
+                    const structure = COURSE_STRUCTURE[topicKey];
+                    for (const part of structure.parts) {
+                        // Count ma1 version
+                        try {
+                            const pathMa1 = `artifacts/${appId}/public/data/campaigns/${topicKey}/${part.id}`;
+                            const snap1 = await getDocs(collection(db, pathMa1));
+                            campaignTotal += snap1.size;
+                            
+                            // Count weekly additions
+                            snap1.docs.forEach(doc => {
+                                const data = doc.data();
+                                const createdAt = data.createdAt?.toMillis?.() || data.createdAt;
+                                if (createdAt && createdAt >= mondayTimestamp) {
+                                    weeklyTotal++;
+                                }
+                            });
+                        } catch (e) { /* Path doesn't exist */ }
+                        
+                        // Count grund version
+                        try {
+                            const pathGrund = `artifacts/${appId}/public/data/campaigns/${topicKey}/${part.id}grund`;
+                            const snap2 = await getDocs(collection(db, pathGrund));
+                            campaignTotal += snap2.size;
+                            
+                            // Count weekly additions
+                            snap2.docs.forEach(doc => {
+                                const data = doc.data();
+                                const createdAt = data.createdAt?.toMillis?.() || data.createdAt;
+                                if (createdAt && createdAt >= mondayTimestamp) {
+                                    weeklyTotal++;
+                                }
+                            });
+                        } catch (e) { /* Path doesn't exist */ }
+                    }
+                }
+                
+                // Count Typuppgifter NP (math_tasks)
+                for (const topicKey of Object.keys(NP_STRUCTURE)) {
+                    const structure = NP_STRUCTURE[topicKey];
+                    for (const part of structure.parts) {
+                        try {
+                            const path = `artifacts/${appId}/public/data/math_tasks/${topicKey}/${part.id}`;
+                            const snap = await getDocs(collection(db, path));
+                            npTotal += snap.size;
+                            
+                            // Count weekly additions
+                            snap.docs.forEach(doc => {
+                                const data = doc.data();
+                                const createdAt = data.createdAt?.toMillis?.() || data.createdAt;
+                                if (createdAt && createdAt >= mondayTimestamp) {
+                                    weeklyTotal++;
+                                }
+                            });
+                        } catch (e) { /* Path doesn't exist */ }
+                    }
+                }
+                
+                const total = campaignTotal + npTotal;
+                totalEl.textContent = total.toLocaleString('sv-SE');
+                campaignEl.textContent = campaignTotal.toLocaleString('sv-SE');
+                npEl.textContent = npTotal.toLocaleString('sv-SE');
+                weeklyEl.textContent = `+${weeklyTotal}`;
+                
+            } catch (e) {
+                console.error('Error counting tasks:', e);
+                totalEl.textContent = 'Fel';
+                campaignEl.textContent = '-';
+                npEl.textContent = '-';
+                weeklyEl.textContent = '-';
             }
         };
 
@@ -2608,20 +3092,37 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
             }
         }
         
-        // Get preview HTML with proper math formatting
+        // Get preview HTML with proper math formatting - filter out image data
         function getPreviewHtml(content) {
             if (!content) return '???';
             if (typeof content === 'string') {
+                // Check if it's base64 image data
+                if (content.startsWith('data:image')) {
+                    return '<span class="text-blue-500 italic">📷 [Bild]</span>';
+                }
                 return formatInlineMath(content.substring(0, 100)) + (content.length > 100 ? '...' : '');
             }
             if (Array.isArray(content)) {
-                // Get first text or math block for preview
-                const text = content.map(b => {
+                // Filter out image blocks and get text/math only
+                const textBlocks = content.filter(b => {
+                    // Skip image blocks
+                    if (b.type === 'image') return false;
+                    // Skip values that look like base64
+                    if (b.value && typeof b.value === 'string' && b.value.startsWith('data:image')) return false;
+                    return true;
+                });
+                
+                // Check if there were images
+                const hasImage = content.some(b => b.type === 'image' || (b.value && typeof b.value === 'string' && b.value.startsWith('data:image')));
+                const imageIndicator = hasImage ? '<span class="text-blue-500">📷</span> ' : '';
+                
+                const text = textBlocks.map(b => {
                     if (b.type === 'math') return `$${b.value}$`;
                     return b.value || '';
                 }).join(' ');
+                
                 const truncated = text.substring(0, 100);
-                return formatInlineMath(truncated) + (text.length > 100 ? '...' : '');
+                return imageIndicator + formatInlineMath(truncated) + (text.length > 100 ? '...' : '');
             }
             return '...';
         }
@@ -2657,9 +3158,18 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
 
         function getPreviewText(content) {
             if (!content) return '???';
-            if (typeof content === 'string') return content.substring(0, 80);
+            if (typeof content === 'string') {
+                // Skip base64 data
+                if (content.startsWith('data:image')) return '[Bild]';
+                return content.substring(0, 80);
+            }
             if (Array.isArray(content)) {
-                return content.map(b => b.value || '').join(' ').substring(0, 80);
+                // Filter out images
+                const textOnly = content
+                    .filter(b => b.type !== 'image' && !(b.value && typeof b.value === 'string' && b.value.startsWith('data:image')))
+                    .map(b => b.value || '')
+                    .join(' ');
+                return textOnly.substring(0, 80);
             }
             return '...';
         }
