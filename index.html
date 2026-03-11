@@ -542,6 +542,7 @@
         <div class="flex gap-1 mb-0 flex-wrap">
             <button id="tabBulkBtn" class="tab-btn active">📦 Bulk Import</button>
             <button id="tabGraphBtn" class="tab-btn">📈 Graf-uppgifter</button>
+            
             <button id="tabFormatBtn" class="tab-btn">📋 Format & Exempel</button>
             <button id="tabListBtn" class="tab-btn">📚 Hantera</button>
             <button id="tabGenomgangBtn" class="tab-btn">📖 Genomgång</button>
@@ -789,6 +790,10 @@ Beräkna $\frac{3}{4} + \frac{2}{3}$
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- TAB: Template Library (removed) -->
+            <div id="viewTemplate" class="hidden"></div>
             </div>
 
             <!-- TAB 3: Format & Example -->
@@ -1339,6 +1344,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 parts: [
                     { id: 'anvandaformler', name: 'Använda formler f(x)' },
                     { id: 'ratalinjen', name: 'Den räta linjen' },
+                    { id: 'koordinatsystem', name: 'Koordinatsystem' },
                     { id: 'procentuell', name: 'Procentuell förändring' },
                     { id: 'jamfortolka', name: 'Jämföra och tolka' },
                     { id: 'funktionerblandade', name: 'Blandade uppgifter' }
@@ -1604,6 +1610,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
         // Tab switching
         document.getElementById('tabBulkBtn').onclick = () => switchTab('Bulk');
         document.getElementById('tabGraphBtn').onclick = () => { switchTab('Graph'); initGraph(); };
+        
         document.getElementById('tabFormatBtn').onclick = () => switchTab('Format');
         document.getElementById('tabListBtn').onclick = () => switchTab('List');
         document.getElementById('tabGenomgangBtn').onclick = () => { switchTab('Genomgang'); updateGenomgangPath(); };
@@ -2633,6 +2640,13 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 } else if (block.type === 'math') {
                     div.className = 'problem-math-block';
                     div.innerHTML = `$$${block.value}$$`;
+                } else if (block.type === 'image') {
+                    div.className = 'mb-4 flex justify-center';
+                    const img = document.createElement('img');
+                    img.src = block.value;
+                    img.className = 'max-w-full rounded-lg border border-gray-200';
+                    img.style.maxHeight = '250px';
+                    div.appendChild(img);
                 } else if (block.type === 'step') {
                     stepCount++;
                     div.className = 'step-block';
@@ -3077,6 +3091,9 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                             <button onclick="editTask('${task.id}')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-2 rounded-lg text-sm transition">
                                 ✏️ Redigera
                             </button>
+                            <button onclick="openMoveDialog('${task.id}')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded-lg text-sm transition">
+                                📦 Flytta
+                            </button>
                             <button onclick="deleteTask('${task.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-lg text-sm transition">
                                 🗑️ Ta bort
                             </button>
@@ -3096,25 +3113,27 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
         function getPreviewHtml(content) {
             if (!content) return '???';
             if (typeof content === 'string') {
-                // Check if it's base64 image data
+                // Check if it's base64 image data - show thumbnail
                 if (content.startsWith('data:image')) {
-                    return '<span class="text-blue-500 italic">📷 [Bild]</span>';
+                    return '<img src="' + content + '" style="max-height:48px;max-width:80px;border-radius:4px;border:1px solid #ddd;vertical-align:middle;margin-right:6px;" title="Bildförhandsvisning">';
                 }
                 return formatInlineMath(content.substring(0, 100)) + (content.length > 100 ? '...' : '');
             }
             if (Array.isArray(content)) {
-                // Filter out image blocks and get text/math only
+                // Filter out image blocks for text, but collect images for thumbnails
                 const textBlocks = content.filter(b => {
-                    // Skip image blocks
                     if (b.type === 'image') return false;
-                    // Skip values that look like base64
                     if (b.value && typeof b.value === 'string' && b.value.startsWith('data:image')) return false;
                     return true;
                 });
                 
-                // Check if there were images
-                const hasImage = content.some(b => b.type === 'image' || (b.value && typeof b.value === 'string' && b.value.startsWith('data:image')));
-                const imageIndicator = hasImage ? '<span class="text-blue-500">📷</span> ' : '';
+                // Build image thumbnails
+                const imageBlocks = content.filter(b => b.type === 'image' || (b.value && typeof b.value === 'string' && b.value.startsWith('data:image')));
+                const imageThumbnails = imageBlocks.map(b => {
+                    const src = b.value || '';
+                    if (!src.startsWith('data:image')) return '';
+                    return '<img src="' + src + '" style="max-height:48px;max-width:80px;border-radius:4px;border:1px solid #ddd;vertical-align:middle;margin-right:6px;" title="Bildförhandsvisning">';
+                }).join('');
                 
                 const text = textBlocks.map(b => {
                     if (b.type === 'math') return `$${b.value}$`;
@@ -3122,7 +3141,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 }).join(' ');
                 
                 const truncated = text.substring(0, 100);
-                return imageIndicator + formatInlineMath(truncated) + (text.length > 100 ? '...' : '');
+                return imageThumbnails + formatInlineMath(truncated) + (text.length > 100 ? '...' : '');
             }
             return '...';
         }
@@ -3185,6 +3204,103 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                 loadTasks();
             } catch (e) {
                 alert('Fel: ' + e.message);
+            }
+        };
+
+        // ============ MOVE TASK ============
+        let moveTaskId = null;
+
+        window.openMoveDialog = function(taskId) {
+            moveTaskId = taskId;
+            const modal = document.getElementById('moveTaskModal');
+            const structure = getCurrentStructure();
+            
+            // Populate topic select
+            const topicSelect = document.getElementById('moveTopicSelect');
+            topicSelect.innerHTML = '';
+            for (const [key, val] of Object.entries(structure)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = val.name;
+                topicSelect.appendChild(opt);
+            }
+            
+            // Populate parts for first topic
+            updateMovePartSelect();
+            
+            modal.classList.remove('hidden');
+        };
+
+        window.updateMovePartSelect = function() {
+            const structure = getCurrentStructure();
+            const topicKey = document.getElementById('moveTopicSelect').value;
+            const partSelect = document.getElementById('movePartSelect');
+            partSelect.innerHTML = '';
+            
+            const parts = structure[topicKey]?.parts || [];
+            for (const part of parts) {
+                const opt = document.createElement('option');
+                opt.value = part.id;
+                opt.textContent = part.name;
+                partSelect.appendChild(opt);
+            }
+        }
+
+        window.closeMoveDialog = function() {
+            document.getElementById('moveTaskModal').classList.add('hidden');
+            moveTaskId = null;
+        };
+
+        window.confirmMoveTask = async function() {
+            if (!moveTaskId) return;
+            
+            const newTopic = document.getElementById('moveTopicSelect').value;
+            const newPartId = document.getElementById('movePartSelect').value;
+            const oldTopic = document.getElementById('topicSelect').value;
+            const oldPartId = document.getElementById('chapterSelect').value;
+            const oldPath = getFirebasePath(oldTopic, oldPartId);
+            
+            // Build new path
+            let newPath;
+            if (currentCollection === 'math_tasks') {
+                newPath = `artifacts/${appId}/public/data/math_tasks/${newTopic}/${newPartId}`;
+            } else {
+                const level = document.getElementById('levelSelect').value;
+                const suffix = level === 'grund' ? 'grund' : '';
+                newPath = `artifacts/${appId}/public/data/campaigns/${newTopic}/${newPartId}${suffix}`;
+            }
+            
+            if (oldPath === newPath) {
+                alert('Uppgiften är redan i denna kategori!');
+                return;
+            }
+            
+            try {
+                // Read old doc
+                const oldDocRef = doc(db, oldPath, moveTaskId);
+                const oldSnap = await getDoc(oldDocRef);
+                if (!oldSnap.exists()) {
+                    alert('Uppgiften hittades inte!');
+                    return;
+                }
+                
+                const data = oldSnap.data();
+                
+                // Write to new location
+                await addDoc(collection(db, newPath), data);
+                
+                // Delete from old location
+                await deleteDoc(oldDocRef);
+                
+                closeMoveDialog();
+                loadTasks();
+                
+                const structure = getCurrentStructure();
+                const newTopicName = structure[newTopic]?.name || newTopic;
+                const newPartName = structure[newTopic]?.parts?.find(p => p.id === newPartId)?.name || newPartId;
+                alert(`✅ Uppgift flyttad till ${newTopicName} → ${newPartName}`);
+            } catch (e) {
+                alert('Fel vid flytt: ' + e.message);
             }
         };
 
@@ -4233,6 +4349,1020 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
             return array;
         }
 
+        // ============ TEMPLATE LIBRARY WITH RANDOMIZATION ============
+        let selectedTemplateId = null;
+        let generatedTemplateProblems = [];
+        let templateLibraryInitialized = false;
+
+        // Random integer between min and max (inclusive), excluding 0 if nonZero
+        function randInt(min, max, nonZero = false) {
+            let v;
+            do { v = Math.floor(Math.random() * (max - min + 1)) + min; } while (nonZero && v === 0);
+            return v;
+        }
+
+        // Format coefficient for display: 1x → x, -1x → -x, 0x → ''
+        function fmtCoeff(c, variable, isFirst = false) {
+            if (c === 0) return '';
+            const sign = c > 0 ? (isFirst ? '' : '+ ') : '- ';
+            const abs = Math.abs(c);
+            const coeff = abs === 1 ? '' : abs.toString();
+            return sign + coeff + variable;
+        }
+
+        // Format constant term
+        function fmtConst(c, isFirst = false) {
+            if (c === 0) return '';
+            const sign = c > 0 ? (isFirst ? '' : '+ ') : '- ';
+            return sign + Math.abs(c);
+        }
+
+        // Build expression like "3x + 2" or "-x - 5"
+        function buildLinearExpr(k, m) {
+            const kPart = fmtCoeff(k, 'x', true);
+            const mPart = fmtConst(m, !kPart);
+            return (kPart + ' ' + mPart).trim() || '0';
+        }
+
+        // ============ GRAPH RENDERING FOR TEMPLATES ============
+        function renderTemplateGraphImage(config) {
+            // config: { lines, xMin, xMax, yMin, yMax, xStep, yStep, xLabel, yLabel, points, width, height }
+            const W = config.width || 560;
+            const H = config.height || 480;
+            const c = document.createElement('canvas');
+            // Use 2x resolution for crisp text
+            const scale = 2;
+            c.width = W * scale; c.height = H * scale;
+            c.style.width = W + 'px'; c.style.height = H + 'px';
+            const ctx = c.getContext('2d');
+            ctx.scale(scale, scale);
+
+            // Generous margins so labels never get cut off
+            // Dynamically compute left margin based on largest Y label
+            const yMin = config.yMin ?? 0;
+            const yMax = config.yMax ?? 500;
+            const yRange = yMax - yMin;
+            const yStep = config.yStep || pickCleanStep(yMax - yMin);
+            const biggestYLabel = Math.abs(yMax) > Math.abs(yMin) ? yMax : yMin;
+            const testLbl = Number.isInteger(biggestYLabel) ? biggestYLabel.toString() : biggestYLabel.toFixed(1);
+            ctx.font = '13px Inter';
+            const lblW = ctx.measureText(testLbl).width;
+            const mLeft = Math.max(62, lblW + 36);  // 36 = padding for tick + axis title
+            const mRight = 24, mTop = 24, mBottom = 52;
+            const pw = W - mLeft - mRight;
+            const ph = H - mTop - mBottom;
+
+            const xMin = config.xMin ?? 0;
+            const xMax = config.xMax ?? 10;
+            const xRange = xMax - xMin;
+
+            const xStep = config.xStep || pickCleanStep(xRange);
+
+            const toX = x => mLeft + ((x - xMin) / xRange) * pw;
+            const toY = y => mTop + ph - ((y - yMin) / yRange) * ph;
+
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, W, H);
+
+            // Light grid lines
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 0.7;
+            for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax + xStep * 0.01; x += xStep) {
+                const px = toX(x);
+                ctx.beginPath(); ctx.moveTo(px, mTop); ctx.lineTo(px, mTop + ph); ctx.stroke();
+            }
+            for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax + yStep * 0.01; y += yStep) {
+                const py = toY(y);
+                ctx.beginPath(); ctx.moveTo(mLeft, py); ctx.lineTo(mLeft + pw, py); ctx.stroke();
+            }
+
+            // Axes
+            ctx.strokeStyle = '#1f2937';
+            ctx.lineWidth = 2;
+            const xAxisY = (yMin <= 0 && yMax >= 0) ? toY(0) : mTop + ph;
+            ctx.beginPath(); ctx.moveTo(mLeft, xAxisY); ctx.lineTo(mLeft + pw, xAxisY); ctx.stroke();
+            const yAxisX = (xMin <= 0 && xMax >= 0) ? toX(0) : mLeft;
+            ctx.beginPath(); ctx.moveTo(yAxisX, mTop); ctx.lineTo(yAxisX, mTop + ph); ctx.stroke();
+
+            // X-axis ticks + labels
+            ctx.fillStyle = '#374151';
+            ctx.font = '13px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax + xStep * 0.01; x += xStep) {
+                const px = toX(x);
+                ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(px, xAxisY); ctx.lineTo(px, xAxisY + 6); ctx.stroke();
+                const lbl = Number.isInteger(x) ? x.toString() : x.toFixed(1);
+                ctx.fillStyle = '#374151';
+                ctx.fillText(lbl, px, xAxisY + 9);
+            }
+
+            // Y-axis ticks + labels — LARGE, CLEAR
+            ctx.font = '13px Inter';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax + yStep * 0.01; y += yStep) {
+                const py = toY(y);
+                ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(yAxisX - 6, py); ctx.lineTo(yAxisX, py); ctx.stroke();
+                ctx.fillStyle = '#374151';
+                const lbl = Number.isInteger(y) ? y.toString() : y.toFixed(1);
+                ctx.fillText(lbl, yAxisX - 10, py);
+            }
+
+            // Axis titles
+            if (config.xLabel) {
+                ctx.font = 'bold 14px Inter';
+                ctx.fillStyle = '#1f2937';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(config.xLabel, mLeft + pw / 2, H - 16);
+            }
+            if (config.yLabel) {
+                ctx.save();
+                ctx.font = 'bold 14px Inter';
+                ctx.fillStyle = '#1f2937';
+                ctx.translate(16, mTop + ph / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(config.yLabel, 0, 0);
+                ctx.restore();
+            }
+
+            // Draw lines (clipped to plot area)
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(mLeft, mTop, pw, ph);
+            ctx.clip();
+
+            const colors = ['#4f46e5', '#dc2626', '#16a34a', '#d97706', '#7c3aed'];
+            (config.lines || []).forEach((line, i) => {
+                ctx.strokeStyle = line.color || colors[i % colors.length];
+                ctx.lineWidth = 3;
+                if (line.dashed) ctx.setLineDash([8, 4]); else ctx.setLineDash([]);
+
+                const lxMin = line.xMin ?? xMin;
+                const lxMax = line.xMax ?? xMax;
+                ctx.beginPath();
+                ctx.moveTo(toX(lxMin), toY(line.k * lxMin + line.m));
+                ctx.lineTo(toX(lxMax), toY(line.k * lxMax + line.m));
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Name label
+                if (line.name) {
+                    ctx.font = 'bold 12px Inter';
+                    ctx.fillStyle = line.color || colors[i % colors.length];
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'bottom';
+                    const lx = toX(lxMax) - 8;
+                    const ly = toY(line.k * lxMax + line.m) - 8;
+                    ctx.fillText(line.name, Math.min(mLeft + pw - 4, lx), Math.max(mTop + 14, ly));
+                }
+            });
+
+            // Draw points
+            (config.points || []).forEach(p => {
+                ctx.fillStyle = p.color || '#dc2626';
+                ctx.beginPath();
+                ctx.arc(toX(p.x), toY(p.y), 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+                if (p.label) {
+                    ctx.fillStyle = p.color || '#dc2626';
+                    ctx.font = 'bold 11px Inter';
+                    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+                    ctx.fillText(p.label, toX(p.x) + 8, toY(p.y) - 4);
+                }
+            });
+
+            ctx.restore(); // un-clip
+
+            return c.toDataURL('image/png');
+        }
+
+        // Helper: generate a single-line scenario with random question type
+        // questionTypes: 'startavgift', 'enhetspris', 'kostnad_vid_x', 'x_for_budget', 'bestam_funktionen'
+        // Pick a clean step for NP-style axes: always 1, 2, 5, 10, 20, 25, 50, 100, ...
+        function pickCleanStep(maxVal) {
+            if (maxVal <= 0) return 1;
+            const target = maxVal / 6; // aim for ~6 steps
+            const mag = Math.pow(10, Math.floor(Math.log10(target)));
+            const r = target / mag;
+            // Only allow 1, 2, 5 multiples — no 2.5 (produces ugly decimals)
+            if (r <= 1) return mag;
+            if (r <= 2) return 2 * mag;
+            if (r <= 5) return 5 * mag;
+            return 10 * mag;
+        }
+
+        function generateLinearScenarioVariant(config) {
+            const { k, m, maxX, xLabel, yLabel, unitX, unitY, contextIntro, color, diff, xStep: cfgXStep, yStep: cfgYStep } = config;
+            
+            // Calculate clean yMax that aligns with step
+            const rawYMax = k * maxX + m;
+            // Pick a yStep — but ensure m (startavgift) lands on a gridline
+            let yStep = cfgYStep || pickCleanStep(rawYMax);
+            // If m doesn't divide evenly by yStep, try halving yStep so it does
+            if (m > 0 && m % yStep !== 0) {
+                const half = yStep / 2;
+                if (half >= 1 && m % half === 0 && rawYMax / half <= 12) {
+                    yStep = half;
+                }
+            }
+            const yMax = Math.ceil(rawYMax / yStep) * yStep + yStep;
+            const xStep = cfgXStep || pickCleanStep(maxX);
+            const xMax = Math.ceil(maxX / xStep) * xStep;
+            
+            // Pick random question type
+            const types = ['startavgift', 'enhetspris', 'kostnad_vid_x', 'x_for_budget', 'bestam_funktionen'];
+            const qType = types[Math.floor(Math.random() * types.length)];
+            
+            const img = renderTemplateGraphImage({
+                lines: [{ k, m, color: color || '#4f46e5', name: 'Kostnad' }],
+                xMin: 0, xMax, yMin: 0, yMax,
+                xStep, yStep,
+                xLabel: xLabel, yLabel: yLabel
+            });
+            
+            if (qType === 'startavgift') {
+                return {
+                    question: [
+                        { type: 'text', value: contextIntro },
+                        { type: 'image', value: img },
+                        { type: 'text', value: `Vad är startavgiften?` }
+                    ],
+                    scaffolding: [
+                        { type: 'scaffold', value: 'Avläs var linjen skär y-axeln (vid x = 0)' },
+                        { type: 'scaffold', value: 'Det värdet är startavgiften (m)' }
+                    ],
+                    explanation: [
+                        { type: 'step', value: `Linjen skär y-axeln vid $y = ${m}$` },
+                        { type: 'step', value: `Startavgiften = $${m}$ ${unitY}` }
+                    ],
+                    answer: `${m} ${unitY}`
+                };
+            }
+            
+            if (qType === 'enhetspris') {
+                const x1 = 0; const y1 = m;
+                const x2 = Math.min(5, maxX - 1); const y2 = k * x2 + m;
+                return {
+                    question: [
+                        { type: 'text', value: contextIntro },
+                        { type: 'image', value: img },
+                        { type: 'text', value: `Vad är priset per ${unitX}?` }
+                    ],
+                    scaffolding: [
+                        { type: 'scaffold', value: 'Välj två punkter på linjen' },
+                        { type: 'scaffold', value: 'Beräkna lutningen $k = \\frac{\\Delta y}{\\Delta x}$' }
+                    ],
+                    explanation: [
+                        { type: 'step', value: `Två punkter: $(${x1},\\, ${y1})$ och $(${x2},\\, ${y2})$` },
+                        { type: 'step', value: `$k = \\frac{${y2} - ${y1}}{${x2} - ${x1}} = \\frac{${y2 - y1}}{${x2}} = ${k}$` },
+                        { type: 'step', value: `Priset per ${unitX} = $${k}$ ${unitY}/${unitX}` }
+                    ],
+                    answer: `${k} ${unitY}/${unitX}`
+                };
+            }
+            
+            if (qType === 'kostnad_vid_x') {
+                const askX = randInt(2, maxX - 1);
+                const cost = k * askX + m;
+                return {
+                    question: [
+                        { type: 'text', value: contextIntro },
+                        { type: 'image', value: img },
+                        { type: 'text', value: `Vad blir kostnaden vid $${askX}$ ${unitX}?` }
+                    ],
+                    scaffolding: [
+                        { type: 'scaffold', value: `Hitta $${askX}$ ${unitX} på x-axeln` },
+                        { type: 'scaffold', value: 'Gå uppåt till linjen och avläs y-värdet' }
+                    ],
+                    explanation: [
+                        { type: 'step', value: `Startavgift (m) = $${m}$ ${unitY}` },
+                        { type: 'step', value: `Pris per ${unitX} (k) = $${k}$ ${unitY}/${unitX}` },
+                        { type: 'step', value: `Kostnad = $${k} \\cdot ${askX} + ${m} = ${cost}$ ${unitY}` }
+                    ],
+                    answer: `${cost} ${unitY}`
+                };
+            }
+            
+            if (qType === 'x_for_budget') {
+                // Pick a nice budget that gives integer x
+                const budgetBase = k * randInt(2, maxX - 2) + m;
+                // Round to nearest nice number
+                const budget = Math.round(budgetBase / 10) * 10 || budgetBase;
+                const xResult = (budget - m) / k;
+                const xRound = Math.round(xResult * 10) / 10;
+                const xStr = Number.isInteger(xRound) ? `${xRound}` : xRound.toFixed(1);
+                return {
+                    question: [
+                        { type: 'text', value: contextIntro },
+                        { type: 'image', value: img },
+                        { type: 'text', value: `Du har $${budget}$ ${unitY}. Hur många ${unitX} räcker det till?` }
+                    ],
+                    scaffolding: [
+                        { type: 'scaffold', value: `Hitta $${budget}$ ${unitY} på y-axeln` },
+                        { type: 'scaffold', value: 'Gå åt höger till linjen och avläs x-värdet' },
+                        { type: 'scaffold', value: 'Eller lös ekvationen $kx + m = ' + budget + '$' }
+                    ],
+                    explanation: [
+                        { type: 'step', value: `$${k}x + ${m} = ${budget}$` },
+                        { type: 'step', value: `$${k}x = ${budget - m}$` },
+                        { type: 'step', value: `$x = \\frac{${budget - m}}{${k}} = ${xStr}$` },
+                        { type: 'step', value: `Det räcker till $${xStr}$ ${unitX}` }
+                    ],
+                    answer: `${xStr} ${unitX}`
+                };
+            }
+            
+            // bestam_funktionen
+            return {
+                question: [
+                    { type: 'text', value: contextIntro },
+                    { type: 'image', value: img },
+                    { type: 'text', value: `Bestäm funktionen $f(x) = kx + m$ som beskriver kostnaden.` }
+                ],
+                scaffolding: [
+                    { type: 'scaffold', value: 'Avläs m-värdet (startavgiften) vid x = 0' },
+                    { type: 'scaffold', value: 'Beräkna k med hjälp av två punkter på linjen' },
+                    { type: 'scaffold', value: 'Skriv funktionen på formen $f(x) = kx + m$' }
+                ],
+                explanation: [
+                    { type: 'step', value: `m = $${m}$ (linjen skär y-axeln vid $${m}$)` },
+                    { type: 'step', value: `k = $${k}$ (lutningen)` },
+                    { type: 'step', value: `$f(x) = ${buildLinearExpr(k, m)}$` }
+                ],
+                answer: `f(x) = ${buildLinearExpr(k, m)}`
+            };
+        }
+
+        const TEMPLATE_DEFINITIONS = [
+            {
+                id: 'taxi_cost',
+                name: 'Taxikostnad',
+                category: 'Linjära funktioner (NP)',
+                icon: '🚕',
+                description: 'Startavgift + kr/km — slumpad frågetyp',
+                generate: function(diff) {
+                    const starts = { easy: [30, 40, 50], medium: [25, 35, 45, 55], hard: [29, 37, 42, 53] };
+                    const rates = { easy: [10, 15, 20], medium: [8, 12, 18, 22], hard: [9, 11, 14, 17, 23] };
+                    const m = starts[diff][Math.floor(Math.random() * starts[diff].length)];
+                    const k = rates[diff][Math.floor(Math.random() * rates[diff].length)];
+                    const maxKm = diff === 'easy' ? 10 : diff === 'medium' ? 15 : 20;
+                    return generateLinearScenarioVariant({
+                        k, m, maxX: maxKm, xLabel: 'Antal km', yLabel: 'Kostnad (kr)',
+                        unitX: 'km', unitY: 'kr', color: '#4f46e5', diff,
+                        contextIntro: 'En taxiresa kostar en fast startavgift plus ett pris per kilometer. Grafen visar kostnaden.'
+                    });
+                }
+            },
+            {
+                id: 'electrician_cost',
+                name: 'Hantverkare',
+                category: 'Linjära funktioner (NP)',
+                icon: '🔧',
+                description: 'Startavgift + timpris — slumpad frågetyp',
+                generate: function(diff) {
+                    const starts = { easy: [200, 300, 400], medium: [150, 250, 350, 450], hard: [175, 225, 325, 475] };
+                    const rates = { easy: [100, 150, 200], medium: [80, 120, 180, 220], hard: [95, 135, 175, 215] };
+                    const m = starts[diff][Math.floor(Math.random() * starts[diff].length)];
+                    const k = rates[diff][Math.floor(Math.random() * rates[diff].length)];
+                    const maxH = diff === 'easy' ? 6 : 8;
+                    return generateLinearScenarioVariant({
+                        k, m, maxX: maxH, xLabel: 'Tid (timmar)', yLabel: 'Kostnad (kr)',
+                        unitX: 'timmar', unitY: 'kr', color: '#16a34a', diff,
+                        contextIntro: 'En hantverkare tar en fast avgift plus ett timpris. Grafen visar totalkostnaden.'
+                    });
+                }
+            },
+            {
+                id: 'scooter_cost',
+                name: 'Elsparkcykel',
+                category: 'Linjära funktioner (NP)',
+                icon: '🛴',
+                description: 'Upplåsningsavgift + minutpris — slumpad frågetyp',
+                generate: function(diff) {
+                    const unlocks = { easy: [10, 15, 20], medium: [5, 10, 15, 20], hard: [7, 12, 18] };
+                    const perMin = { easy: [2, 3, 4], medium: [2, 3, 4, 5], hard: [2, 3, 4, 5] };
+                    const m = unlocks[diff][Math.floor(Math.random() * unlocks[diff].length)];
+                    const k = perMin[diff][Math.floor(Math.random() * perMin[diff].length)];
+                    const maxMin = diff === 'easy' ? 20 : 30;
+                    return generateLinearScenarioVariant({
+                        k, m, maxX: maxMin, xLabel: 'Tid (minuter)', yLabel: 'Kostnad (kr)',
+                        unitX: 'minuter', unitY: 'kr', color: '#7c3aed', diff,
+                        contextIntro: 'En elsparkcykelapp tar en upplåsningsavgift plus ett pris per minut. Grafen visar kostnaden.'
+                    });
+                }
+            },
+            {
+                id: 'parking_cost',
+                name: 'Parkeringskostnad',
+                category: 'Linjära funktioner (NP)',
+                icon: '🅿️',
+                description: 'Startavgift + per timme — slumpad frågetyp',
+                generate: function(diff) {
+                    const starts = { easy: [0, 10, 20], medium: [0, 5, 15, 25], hard: [0, 8, 12, 18] };
+                    const rates = { easy: [10, 15, 20], medium: [8, 12, 16, 24], hard: [7, 11, 14, 19] };
+                    const m = starts[diff][Math.floor(Math.random() * starts[diff].length)];
+                    const k = rates[diff][Math.floor(Math.random() * rates[diff].length)];
+                    const maxH = 8;
+                    return generateLinearScenarioVariant({
+                        k, m, maxX: maxH, xLabel: 'Tid (timmar)', yLabel: 'Kostnad (kr)',
+                        unitX: 'timmar', unitY: 'kr', color: '#d97706', diff,
+                        contextIntro: 'Grafen visar kostnaden för parkering.'
+                    });
+                }
+            },
+            {
+                id: 'pool_fill',
+                name: 'Pool fylls med vatten',
+                category: 'Linjära funktioner (NP)',
+                icon: '🏊',
+                description: 'Startvolym + liter/min — slumpad frågetyp',
+                generate: function(diff) {
+                    const startVols = { easy: [50, 100], medium: [0, 50, 100, 200], hard: [0, 30, 80, 150] };
+                    const rates = { easy: [10, 20, 25], medium: [8, 12, 15, 20], hard: [7, 11, 16, 22] };
+                    const m = startVols[diff][Math.floor(Math.random() * startVols[diff].length)];
+                    const k = rates[diff][Math.floor(Math.random() * rates[diff].length)];
+                    const maxT = 10;
+                    return generateLinearScenarioVariant({
+                        k, m, maxX: maxT, xLabel: 'Tid (min)', yLabel: 'Volym (liter)',
+                        unitX: 'minuter', unitY: 'liter', color: '#0891b2', diff,
+                        contextIntro: 'En pool fylls med vatten med konstant hastighet. Grafen visar volymen.'
+                    });
+                }
+            },
+            {
+                id: 'phone_plan',
+                name: 'Telefonabonnemang',
+                category: 'Jämföra två linjer (NP)',
+                icon: '📱',
+                description: 'Jämför två abonnemang – hitta skärningspunkt',
+                generate: function(diff) {
+                    const m1 = diff === 'easy' ? 100 : randInt(50, 150);
+                    const k1 = diff === 'easy' ? 5 : randInt(2, 8);
+                    const m2 = diff === 'easy' ? 0 : randInt(0, 50);
+                    const k2 = k1 + randInt(2, 5);
+                    const maxX = diff === 'easy' ? 30 : 50;
+                    const intX = (m1 - m2) / (k2 - k1);
+                    const intXRound = Math.round(intX * 10) / 10;
+                    const rawYMax = Math.max(k1 * maxX + m1, k2 * maxX + m2);
+                    const yStep = pickCleanStep(rawYMax);
+                    const yMax = Math.ceil(rawYMax / yStep) * yStep + yStep;
+                    const xStep = pickCleanStep(maxX);
+                    
+                    const img = renderTemplateGraphImage({
+                        lines: [
+                            { k: k1, m: m1, color: '#4f46e5', name: 'Abonnemang A' },
+                            { k: k2, m: m2, color: '#dc2626', name: 'Abonnemang B' }
+                        ],
+                        xMin: 0, xMax: Math.ceil(maxX / xStep) * xStep, yMin: 0, yMax,
+                        xStep, yStep,
+                        xLabel: 'Antal samtal', yLabel: 'Kostnad (kr)'
+                    });
+                    
+                    // Random question variant for two-line
+                    const twoTypes = ['intersection', 'which_cheaper', 'cost_diff'];
+                    const qType = twoTypes[Math.floor(Math.random() * twoTypes.length)];
+                    
+                    if (qType === 'which_cheaper') {
+                        const askX = randInt(1, maxX - 2);
+                        const costA = k1 * askX + m1;
+                        const costB = k2 * askX + m2;
+                        const cheaper = costA < costB ? 'A' : costA > costB ? 'B' : 'lika';
+                        return {
+                            question: [
+                                { type: 'text', value: 'Grafen visar kostnaden för två telefonabonnemang.' },
+                                { type: 'image', value: img },
+                                { type: 'text', value: `Vilket abonnemang är billigast vid $${askX}$ samtal?` }
+                            ],
+                            scaffolding: [
+                                { type: 'scaffold', value: `Hitta x = $${askX}$ och avläs y för båda linjerna` },
+                                { type: 'scaffold', value: 'Det lägsta y-värdet = det billigaste' }
+                            ],
+                            explanation: [
+                                { type: 'step', value: `A vid $${askX}$ samtal: $${k1} \\cdot ${askX} + ${m1} = ${costA}$ kr` },
+                                { type: 'step', value: `B vid $${askX}$ samtal: $${k2} \\cdot ${askX} + ${m2} = ${costB}$ kr` },
+                                { type: 'step', value: `Abonnemang ${cheaper} är billigast` }
+                            ],
+                            answer: `Abonnemang ${cheaper}`
+                        };
+                    }
+                    
+                    if (qType === 'cost_diff') {
+                        const askX = randInt(Math.max(1, Math.ceil(intXRound) + 1), maxX - 1);
+                        const costA = k1 * askX + m1;
+                        const costB = k2 * askX + m2;
+                        const diffCost = Math.abs(costA - costB);
+                        return {
+                            question: [
+                                { type: 'text', value: 'Grafen visar kostnaden för två telefonabonnemang.' },
+                                { type: 'image', value: img },
+                                { type: 'text', value: `Hur stor är skillnaden i kostnad vid $${askX}$ samtal?` }
+                            ],
+                            scaffolding: [
+                                { type: 'scaffold', value: `Avläs kostnaden för båda vid x = $${askX}$` },
+                                { type: 'scaffold', value: 'Beräkna skillnaden' }
+                            ],
+                            explanation: [
+                                { type: 'step', value: `A: $${costA}$ kr, B: $${costB}$ kr` },
+                                { type: 'step', value: `Skillnad = $|${costA} - ${costB}| = ${diffCost}$ kr` }
+                            ],
+                            answer: `${diffCost} kr`
+                        };
+                    }
+                    
+                    // intersection (default)
+                    return {
+                        question: [
+                            { type: 'text', value: 'Grafen visar kostnaden för två telefonabonnemang beroende på antal samtal.' },
+                            { type: 'image', value: img },
+                            { type: 'text', value: 'Vid hur många samtal kostar abonnemangen lika mycket?' }
+                        ],
+                        scaffolding: [
+                            { type: 'scaffold', value: 'Hitta där de två linjerna skär varandra' },
+                            { type: 'scaffold', value: 'Avläs x-värdet vid skärningspunkten' }
+                        ],
+                        explanation: [
+                            { type: 'step', value: `A: $f(x) = ${k1}x + ${m1}$, B: $g(x) = ${k2}x + ${m2}$` },
+                            { type: 'step', value: `$${k1}x + ${m1} = ${k2}x + ${m2}$` },
+                            { type: 'step', value: `$x = ${intXRound}$ samtal` }
+                        ],
+                        answer: `${intXRound} samtal`
+                    };
+                }
+            },
+            {
+                id: 'gym_membership',
+                name: 'Gymkort',
+                category: 'Jämföra två linjer (NP)',
+                icon: '🏋️',
+                description: 'Månadskort vs klippkort – jämför, skärningspunkt, bäst val',
+                generate: function(diff) {
+                    const monthly = { easy: [300, 400], medium: [250, 350, 450], hard: [275, 325, 375] };
+                    const perVisit = { easy: [50, 60], medium: [40, 50, 60, 70], hard: [35, 45, 55, 65] };
+                    const mFix = monthly[diff][Math.floor(Math.random() * monthly[diff].length)];
+                    const kDrop = perVisit[diff][Math.floor(Math.random() * perVisit[diff].length)];
+                    const maxV = 15;
+                    const intX = Math.round(mFix / kDrop);
+                    const rawYMax = Math.max(mFix, kDrop * maxV);
+                    const yStep = pickCleanStep(rawYMax);
+                    const yMax = Math.ceil(rawYMax / yStep) * yStep + yStep;
+                    
+                    const img = renderTemplateGraphImage({
+                        lines: [
+                            { k: 0, m: mFix, color: '#4f46e5', name: 'Månadskort' },
+                            { k: kDrop, m: 0, color: '#dc2626', name: 'Klippkort' }
+                        ],
+                        xMin: 0, xMax: maxV, yMin: 0, yMax,
+                        xStep: pickCleanStep(maxV), yStep,
+                        xLabel: 'Antal besök', yLabel: 'Kostnad (kr)'
+                    });
+                    
+                    const gymTypes = ['intersection', 'cost_at_x', 'which_better'];
+                    const qType = gymTypes[Math.floor(Math.random() * gymTypes.length)];
+                    
+                    if (qType === 'cost_at_x') {
+                        const askV = randInt(2, maxV - 1);
+                        const costDrop = kDrop * askV;
+                        return {
+                            question: [
+                                { type: 'text', value: 'Ett gym erbjuder månadskort eller klippkort. Grafen visar kostnaderna.' },
+                                { type: 'image', value: img },
+                                { type: 'text', value: `Vad kostar klippkortet vid $${askV}$ besök?` }
+                            ],
+                            scaffolding: [
+                                { type: 'scaffold', value: `Avläs klippkortets linje vid x = $${askV}$` }
+                            ],
+                            explanation: [
+                                { type: 'step', value: `Klippkort: $${kDrop} \\cdot ${askV} = ${costDrop}$ kr` }
+                            ],
+                            answer: `${costDrop} kr`
+                        };
+                    }
+                    
+                    if (qType === 'which_better') {
+                        const askV = randInt(intX + 1, maxV);
+                        return {
+                            question: [
+                                { type: 'text', value: 'Ett gym erbjuder månadskort eller klippkort. Grafen visar kostnaderna.' },
+                                { type: 'image', value: img },
+                                { type: 'text', value: `Vilket alternativ är billigast om du tränar $${askV}$ gånger per månad?` }
+                            ],
+                            scaffolding: [
+                                { type: 'scaffold', value: `Jämför de två linjernas y-värde vid x = $${askV}$` }
+                            ],
+                            explanation: [
+                                { type: 'step', value: `Klippkort: $${kDrop} \\cdot ${askV} = ${kDrop * askV}$ kr` },
+                                { type: 'step', value: `Månadskort: $${mFix}$ kr` },
+                                { type: 'step', value: `${kDrop * askV > mFix ? 'Månadskortet' : 'Klippkortet'} är billigast` }
+                            ],
+                            answer: `${kDrop * askV > mFix ? 'Månadskortet' : 'Klippkortet'}`
+                        };
+                    }
+                    
+                    // intersection
+                    return {
+                        question: [
+                            { type: 'text', value: 'Ett gym erbjuder månadskort eller klippkort. Grafen visar kostnaderna.' },
+                            { type: 'image', value: img },
+                            { type: 'text', value: 'Vid hur många besök kostar alternativen lika mycket?' }
+                        ],
+                        scaffolding: [
+                            { type: 'scaffold', value: 'Hitta skärningspunkten mellan de två linjerna' }
+                        ],
+                        explanation: [
+                            { type: 'step', value: `$${kDrop}x = ${mFix} \\Rightarrow x = ${intX}$` },
+                            { type: 'step', value: `Vid $${intX}$ besök kostar de lika` }
+                        ],
+                        answer: `${intX} besök`
+                    };
+                }
+            },
+            {
+                id: 'salary_compare',
+                name: 'Lön & provision',
+                category: 'Jämföra två linjer (NP)',
+                icon: '💰',
+                description: 'Fast lön + provision – jämför erbjudanden',
+                generate: function(diff) {
+                    const base1 = { easy: [15000, 20000], medium: [12000, 16000, 22000], hard: [13500, 17500, 21000] };
+                    const prov1 = { easy: [100, 200], medium: [50, 100, 150, 200], hard: [75, 125, 175] };
+                    const b1 = base1[diff][Math.floor(Math.random() * base1[diff].length)];
+                    const p1 = prov1[diff][Math.floor(Math.random() * prov1[diff].length)];
+                    const b2 = b1 - randInt(3000, 6000);
+                    const p2 = p1 + randInt(50, 150);
+                    const maxSales = 80;
+                    const intX = Math.round((b1 - b2) / (p2 - p1));
+                    const rawYMax = Math.max(b1 + p1 * maxSales, b2 + p2 * maxSales);
+                    const yStep = pickCleanStep(rawYMax);
+                    const yMax = Math.ceil(rawYMax / yStep) * yStep + yStep;
+                    const xStep = pickCleanStep(maxSales);
+                    
+                    const img = renderTemplateGraphImage({
+                        lines: [
+                            { k: p1, m: b1, color: '#4f46e5', name: 'Erbjudande A' },
+                            { k: p2, m: b2, color: '#dc2626', name: 'Erbjudande B' }
+                        ],
+                        xMin: 0, xMax: Math.ceil(maxSales / xStep) * xStep, yMin: 0, yMax,
+                        xStep, yStep,
+                        xLabel: 'Antal sälj', yLabel: 'Lön (kr)'
+                    });
+                    
+                    return {
+                        question: [
+                            { type: 'text', value: 'Två jobb erbjuder olika lönemodeller. Grafen visar månadslönen beroende på antal sälj.' },
+                            { type: 'image', value: img },
+                            { type: 'text', value: 'Vid hur många sälj ger de samma lön?' }
+                        ],
+                        scaffolding: [
+                            { type: 'scaffold', value: 'Hitta där linjerna skär varandra' },
+                            { type: 'scaffold', value: 'Avläs x-värdet vid skärningspunkten' }
+                        ],
+                        explanation: [
+                            { type: 'step', value: `A: $f(x) = ${p1}x + ${b1}$` },
+                            { type: 'step', value: `B: $g(x) = ${p2}x + ${b2}$` },
+                            { type: 'step', value: `$x = ${intX}$ sälj` }
+                        ],
+                        answer: `${intX} sälj`
+                    };
+                }
+            },
+            {
+                id: 'determine_function',
+                name: 'Bestäm funktionen',
+                category: 'Avläsning & tolkning (NP)',
+                icon: '📐',
+                description: 'Avläs k och m ur graf, skriv f(x) = kx + m',
+                generate: function(diff) {
+                    const ranges = { easy: [-3, 3], medium: [-5, 5], hard: [-8, 8] };
+                    const [lo, hi] = ranges[diff];
+                    const k = randInt(lo, hi, true);
+                    const m = randInt(lo, hi);
+                    const xMin = -6; const xMax = 6;
+                    const yMin = Math.min(k * xMin + m, k * xMax + m) - 2;
+                    const yMax = Math.max(k * xMin + m, k * xMax + m) + 2;
+                    
+                    const yMinR = Math.floor(yMin);
+                    const yMaxR = Math.ceil(yMax);
+                    
+                    const img = renderTemplateGraphImage({
+                        lines: [{ k, m, color: '#4f46e5', name: 'f(x)' }],
+                        xMin, xMax, yMin: yMinR, yMax: yMaxR,
+                        xStep: 1, yStep: pickCleanStep(yMaxR - yMinR),
+                        xLabel: 'x', yLabel: 'y',
+                        points: [
+                            { x: 0, y: m, color: '#dc2626', label: `(0, ${m})` },
+                            { x: 1, y: k + m, color: '#dc2626', label: `(1, ${k + m})` }
+                        ]
+                    });
+                    
+                    return {
+                        question: [
+                            { type: 'text', value: 'Bestäm funktionen $f(x) = kx + m$ utifrån grafen.' },
+                            { type: 'image', value: img }
+                        ],
+                        scaffolding: [
+                            { type: 'scaffold', value: 'Avläs m-värdet där linjen skär y-axeln' },
+                            { type: 'scaffold', value: 'Beräkna k med två punkter: $k = \\frac{\\Delta y}{\\Delta x}$' }
+                        ],
+                        explanation: [
+                            { type: 'step', value: `m = $${m}$ (y-axelns skärningspunkt)` },
+                            { type: 'step', value: `k = $\\frac{${k + m} - ${m}}{1 - 0} = ${k}$` },
+                            { type: 'step', value: `$f(x) = ${buildLinearExpr(k, m)}$` }
+                        ],
+                        answer: `f(x) = ${buildLinearExpr(k, m)}`
+                    };
+                }
+            },
+            {
+                id: 'read_graph_value',
+                name: 'Avläs f(a) ur graf',
+                category: 'Avläsning & tolkning (NP)',
+                icon: '👁️',
+                description: 'Avläs funktionsvärde i given punkt',
+                generate: function(diff) {
+                    const ranges = { easy: [-3, 3], medium: [-5, 5], hard: [-7, 7] };
+                    const [lo, hi] = ranges[diff];
+                    const k = randInt(lo, hi, true);
+                    const m = randInt(lo, hi);
+                    const a = randInt(-3, 3, true);
+                    const fa = k * a + m;
+                    const xMin = -6; const xMax = 6;
+                    const yLo = Math.min(k * xMin + m, k * xMax + m) - 2;
+                    const yHi = Math.max(k * xMin + m, k * xMax + m) + 2;
+                    
+                    const yMinR = Math.floor(yLo);
+                    const yMaxR = Math.ceil(yHi);
+                    const img = renderTemplateGraphImage({
+                        lines: [{ k, m, color: '#4f46e5', name: 'f(x)' }],
+                        xMin, xMax, yMin: yMinR, yMax: yMaxR,
+                        xStep: 1, yStep: pickCleanStep(yMaxR - yMinR),
+                        xLabel: 'x', yLabel: 'y'
+                    });
+                    
+                    return {
+                        question: [
+                            { type: 'text', value: `Grafen visar funktionen $f(x)$. Avläs $f(${a})$.` },
+                            { type: 'image', value: img }
+                        ],
+                        scaffolding: [
+                            { type: 'scaffold', value: `Hitta x = $${a}$ på x-axeln` },
+                            { type: 'scaffold', value: 'Gå uppåt/nedåt till linjen och avläs y-värdet' }
+                        ],
+                        explanation: [
+                            { type: 'step', value: `Vid x = $${a}$ avläser vi y = $${fa}$` },
+                            { type: 'step', value: `$f(${a}) = ${fa}$` }
+                        ],
+                        answer: `${fa}`
+                    };
+                }
+            }
+        ];
+
+        function initTemplateLibrary() {
+            if (templateLibraryInitialized) return;
+            templateLibraryInitialized = true;
+
+            const list = document.getElementById('templateList');
+            list.innerHTML = '';
+
+            // Group by category
+            const categories = {};
+            TEMPLATE_DEFINITIONS.forEach(t => {
+                if (!categories[t.category]) categories[t.category] = [];
+                categories[t.category].push(t);
+            });
+
+            Object.keys(categories).forEach(cat => {
+                const catDiv = document.createElement('div');
+                catDiv.className = 'mb-3';
+                catDiv.innerHTML = `<div class="text-xs font-bold text-gray-400 uppercase mb-1">${cat}</div>`;
+
+                categories[cat].forEach(tmpl => {
+                    const btn = document.createElement('button');
+                    btn.className = `w-full text-left p-3 rounded-lg border-2 transition ${selectedTemplateId === tmpl.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300 bg-white'}`;
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">${tmpl.icon}</span>
+                            <div>
+                                <div class="font-medium text-gray-800 text-sm">${tmpl.name}</div>
+                                <div class="text-xs text-gray-400">${tmpl.description}</div>
+                            </div>
+                        </div>
+                    `;
+                    btn.onclick = () => {
+                        selectedTemplateId = tmpl.id;
+                        // Refresh UI
+                        templateLibraryInitialized = false;
+                        initTemplateLibrary();
+                    };
+                    catDiv.appendChild(btn);
+                });
+
+                list.appendChild(catDiv);
+            });
+        }
+
+        window.generateFromTemplate = function() {
+            if (!selectedTemplateId) {
+                showStatus('templateSaveStatus', '❌ Välj en mall först!', 'red');
+                return;
+            }
+
+            const tmpl = TEMPLATE_DEFINITIONS.find(t => t.id === selectedTemplateId);
+            if (!tmpl) return;
+
+            const count = parseInt(document.getElementById('templateCount').value) || 10;
+            const diff = document.getElementById('templateDifficulty').value;
+
+            generatedTemplateProblems = [];
+            const usedAnswers = new Set();
+
+            for (let i = 0; i < count * 3 && generatedTemplateProblems.length < count; i++) {
+                const problem = tmpl.generate(diff);
+                // Deduplicate by answer
+                if (!usedAnswers.has(problem.answer)) {
+                    usedAnswers.add(problem.answer);
+                    problem._status = 'pending';
+                    generatedTemplateProblems.push(problem);
+                }
+            }
+
+            renderGeneratedProblems();
+            document.getElementById('templateSaveAllBtn').classList.remove('hidden');
+            document.getElementById('templateRegenBtn').classList.remove('hidden');
+            document.getElementById('templateGeneratedCount').textContent = `${generatedTemplateProblems.length} st`;
+
+            // Auto-preview first
+            if (generatedTemplateProblems.length > 0) {
+                previewTemplateProblem(0);
+            }
+        };
+
+        window.regenerateAll = function() {
+            generateFromTemplate();
+        };
+
+        function renderGeneratedProblems() {
+            const list = document.getElementById('templateGeneratedList');
+            list.innerHTML = '';
+
+            generatedTemplateProblems.forEach((p, idx) => {
+                const questionText = p.question.map(b => b.value).join(' ').substring(0, 80);
+                const div = document.createElement('div');
+                div.className = `task-card cursor-pointer ${p._status === 'saved' ? 'saved' : ''}`;
+                div.innerHTML = `
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-700 truncate">#${idx + 1}: ${formatInlineMath(questionText)}</div>
+                            <div class="text-xs text-gray-400 mt-1">Svar: <strong>${formatInlineMath(p.answer)}</strong></div>
+                        </div>
+                        <div class="flex gap-1">
+                            ${p._status === 'saved' ? '<span class="text-green-600 text-xs font-bold">✅</span>' : `<button onclick="saveTemplateProblem(${idx})" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs hover:bg-green-200">💾</button>`}
+                            <button onclick="removeTemplateProblem(${idx})" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs hover:bg-red-200">✕</button>
+                        </div>
+                    </div>
+                `;
+                div.onclick = (e) => {
+                    if (e.target.tagName === 'BUTTON') return;
+                    previewTemplateProblem(idx);
+                };
+                list.appendChild(div);
+            });
+
+            // Typeset MathJax
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([list]).catch(() => {});
+            }
+        }
+
+        function previewTemplateProblem(idx) {
+            const problem = generatedTemplateProblems[idx];
+            if (!problem) return;
+
+            const preview = document.getElementById('templatePreview');
+            preview.innerHTML = '';
+
+            // Question
+            renderBlocks(preview, problem.question);
+
+            // Scaffolding
+            if (problem.scaffolding && problem.scaffolding.length > 0) {
+                const sc = document.createElement('div');
+                sc.className = 'bg-amber-50 rounded-xl p-4 mt-4 border border-amber-200';
+                sc.innerHTML = '<div class="text-amber-700 font-bold mb-2">🪜 Scaffolding</div>';
+                problem.scaffolding.forEach((s, i) => {
+                    const d = document.createElement('div');
+                    d.className = 'scaffold-block';
+                    d.innerHTML = `<span class="scaffold-number">${i + 1}.</span><span>${formatInlineMath(s.value)}</span>`;
+                    sc.appendChild(d);
+                });
+                preview.appendChild(sc);
+            }
+
+            // Solution
+            if (problem.explanation && problem.explanation.length > 0) {
+                const sol = document.createElement('div');
+                sol.className = 'bg-green-50 rounded-xl p-4 mt-4 border border-green-200';
+                sol.innerHTML = '<div class="text-green-700 font-bold mb-2">💡 Lösning</div>';
+                problem.explanation.forEach((s, i) => {
+                    const d = document.createElement('div');
+                    d.className = 'step-block';
+                    d.innerHTML = `<span class="step-number">${i + 1}.</span><span>${formatInlineMath(s.value)}</span>`;
+                    sol.appendChild(d);
+                });
+                preview.appendChild(sol);
+            }
+
+            // Answer
+            const ans = document.createElement('div');
+            ans.className = 'mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-200';
+            ans.innerHTML = `<span class="font-bold text-indigo-700">✅ Svar:</span> <span class="text-indigo-900">${formatInlineMath('$' + problem.answer + '$')}</span>`;
+            preview.appendChild(ans);
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([preview]);
+            }
+        }
+
+        window.saveTemplateProblem = async function(idx) {
+            const problem = generatedTemplateProblems[idx];
+            if (!problem || problem._status === 'saved') return;
+
+            try {
+                await saveTaskToFirebase(problem);
+                problem._status = 'saved';
+                renderGeneratedProblems();
+                showStatus('templateSaveStatus', `✅ Uppgift #${idx + 1} sparad!`, 'green');
+            } catch (e) {
+                showStatus('templateSaveStatus', '❌ Fel: ' + e.message, 'red');
+            }
+        };
+
+        window.removeTemplateProblem = function(idx) {
+            generatedTemplateProblems.splice(idx, 1);
+            renderGeneratedProblems();
+            document.getElementById('templateGeneratedCount').textContent = `${generatedTemplateProblems.length} st`;
+        };
+
+        window.saveAllTemplateProblems = async function() {
+            const pending = generatedTemplateProblems.filter(p => p._status === 'pending');
+            if (pending.length === 0) {
+                showStatus('templateSaveStatus', 'Alla är redan sparade!', 'amber');
+                return;
+            }
+
+            showStatus('templateSaveStatus', `⏳ Sparar ${pending.length} uppgifter...`, 'blue');
+
+            let saved = 0;
+            for (const p of generatedTemplateProblems) {
+                if (p._status === 'pending') {
+                    try {
+                        await saveTaskToFirebase(p);
+                        p._status = 'saved';
+                        saved++;
+                    } catch (e) {
+                        console.error('Save error:', e);
+                    }
+                }
+            }
+
+            renderGeneratedProblems();
+            showStatus('templateSaveStatus', `✅ ${saved} uppgifter sparade!`, 'green');
+            loadTasks();
+        };
+
     </script>
+
+    <!-- Move Task Modal -->
+    <div id="moveTaskModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-bold text-gray-800">📦 Flytta uppgift</h3>
+                <p class="text-sm text-gray-500 mt-1">Välj nytt ämne och del att flytta uppgiften till</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">Ämne</label>
+                    <select id="moveTopicSelect" onchange="updateMovePartSelect()" class="w-full p-3 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-400 focus:outline-none"></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">Del</label>
+                    <select id="movePartSelect" class="w-full p-3 border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-indigo-400 focus:outline-none"></select>
+                </div>
+            </div>
+            <div class="p-6 bg-gray-50 rounded-b-2xl flex gap-3 justify-end">
+                <button onclick="closeMoveDialog()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-bold transition">❌ Avbryt</button>
+                <button onclick="confirmMoveTask()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition">📦 Flytta hit</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
