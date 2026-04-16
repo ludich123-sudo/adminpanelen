@@ -716,6 +716,26 @@ Beräkna $\frac{3}{4} + \frac{2}{3}$
                                 </div>
                             </div>
                         </div>
+                        <div class="grid grid-cols-2 gap-3 mt-3">
+                            <div>
+                                <label class="text-xs text-gray-500">X-axelnamn (valfritt)</label>
+                                <input type="text" id="xAxisLabel" placeholder="t.ex. Vikt (kg)" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" oninput="updateGraph()">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Y-axelnamn (valfritt)</label>
+                                <input type="text" id="yAxisLabel" placeholder="t.ex. Pris (kr)" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" oninput="updateGraph()">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mt-3">
+                            <div>
+                                <label class="text-xs text-gray-500">X rutsteg (auto om tomt)</label>
+                                <input type="number" id="xGridStep" placeholder="Auto" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" oninput="updateGraph()" min="0.1" step="any">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Y rutsteg (auto om tomt)</label>
+                                <input type="number" id="yGridStep" placeholder="Auto" class="w-full p-2 border-2 border-gray-200 rounded-lg text-sm" oninput="updateGraph()" min="0.1" step="any">
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Right: Task Creation -->
@@ -1292,8 +1312,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     { id: 'potenser', name: 'Potenser' },
                     { id: 'brak', name: 'Bråktal' },
                     { id: 'forlangforkort', name: 'Förläng och förkorta' },
-                    { id: 'overslags', name: 'Överslagsräkning' },
-                    { id: 'blandadetal', name: 'Blandade uppgifter (Som prov)' }
+                    { id: 'overslags', name: 'Överslagsräkning' }
                 ]
             },
             Algebra: {
@@ -1309,8 +1328,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     { id: 'ekvplusminus', name: 'Ekvationer plus och minus' },
                     { id: 'ekvmultidiv', name: 'Ekvationer multiplikation/division' },
                     { id: 'ekvparentes', name: 'Ekvationer med parentes' },
-                    { id: 'ekvbadasida', name: 'Ekvation med x på båda sidor' },
-                    { id: 'algebrablandat', name: 'Blandade uppgifter' }
+                    { id: 'ekvbadasida', name: 'Ekvation med x på båda sidor' }
                 ]
             },
             Procent: {
@@ -1322,8 +1340,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     { id: 'procentenheter', name: 'Procentenheter' },
                     { id: 'forandringsfaktorn', name: 'Förändringsfaktorn' },
                     { id: 'upprepadforandring', name: 'Upprepad förändring' },
-                    { id: 'baklänges', name: 'Baklänges räkning' },
-                    { id: 'procentblandat', name: 'Blandade uppgifter' }
+                    { id: 'baklänges', name: 'Baklänges räkning' }
                 ]
             },
             Sannolikhet: {
@@ -1334,8 +1351,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     { id: 'enklasannolikheter', name: 'Enkla sannolikheter' },
                     { id: 'flerautfall', name: 'Flera utfall' },
                     { id: 'oberoendeberoende', name: 'Oberoende o beroende' },
-                    { id: 'komplement', name: 'Komplementhändelse' },
-                    { id: 'sannolikhetblandade', name: 'Blandade uppgifter' }
+                    { id: 'komplement', name: 'Komplementhändelse' }
                 ]
             },
             FunktionerSamband: {
@@ -1346,8 +1362,7 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     { id: 'ratalinjen', name: 'Den räta linjen' },
                     { id: 'koordinatsystem', name: 'Koordinatsystem' },
                     { id: 'procentuell', name: 'Procentuell förändring' },
-                    { id: 'jamfortolka', name: 'Jämföra och tolka' },
-                    { id: 'funktionerblandade', name: 'Blandade uppgifter' }
+                    { id: 'jamfortolka', name: 'Jämföra och tolka' }
                 ]
             },
             Statistik: {
@@ -1943,9 +1958,11 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
             const xRange = xMax - xMin;
             const yRange = yMax - yMin;
             
-            // Calculate smart step sizes
-            const xStep = calculateNiceStep(xRange);
-            const yStep = calculateNiceStep(yRange);
+            // Calculate step sizes (use custom if set, otherwise auto)
+            const customXStep = parseFloat(document.getElementById('xGridStep')?.value);
+            const customYStep = parseFloat(document.getElementById('yGridStep')?.value);
+            const xStep = (customXStep > 0) ? customXStep : calculateNiceStep(xRange);
+            const yStep = (customYStep > 0) ? customYStep : calculateNiceStep(yRange);
             
             // Clear canvas
             graphCtx.fillStyle = 'white';
@@ -2016,6 +2033,26 @@ Minnesregel: **PEMDAS** (Parentheses, Exponents, Multiplication, Division, Addit
                     const xPos = xMin <= 0 && xMax >= 0 ? toPixelX(0) + 4 : 5;
                     graphCtx.fillText(label, xPos, toPixelY(y) + 4);
                 }
+            }
+            
+            // Draw axis names
+            const xAxisLabel = document.getElementById('xAxisLabel')?.value?.trim();
+            const yAxisLabel = document.getElementById('yAxisLabel')?.value?.trim();
+            
+            if (xAxisLabel) {
+                graphCtx.fillStyle = '#1f2937';
+                graphCtx.font = 'bold 13px Inter';
+                graphCtx.textAlign = 'right';
+                graphCtx.fillText(xAxisLabel, width - 8, (yMin <= 0 && yMax >= 0 ? toPixelY(0) - 8 : height - 20));
+            }
+            if (yAxisLabel) {
+                graphCtx.save();
+                graphCtx.fillStyle = '#1f2937';
+                graphCtx.font = 'bold 13px Inter';
+                graphCtx.textAlign = 'center';
+                graphCtx.translate((xMin <= 0 && xMax >= 0 ? toPixelX(0) + 20 : 20), 16);
+                graphCtx.fillText(yAxisLabel, 0, 0);
+                graphCtx.restore();
             }
             
             // Draw all graph elements
